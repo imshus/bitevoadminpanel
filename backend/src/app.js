@@ -3,6 +3,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import express from 'express';
+import compression from 'compression';
 import helmet from 'helmet';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
@@ -26,6 +27,8 @@ export function createApp() {
   const app = express();
   app.disable('x-powered-by');
   if (config.trustProxy) app.set('trust proxy', 1);
+  // gzip: a month of orders is ~1 MB of JSON but ~80 KB compressed.
+  app.use(compression());
 
   app.use(helmet({
     // Photos are shown by the frontend, which may live on another domain.

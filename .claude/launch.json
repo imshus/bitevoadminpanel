@@ -1,0 +1,29 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "bitevo-api",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "backend", "run", "dev"],
+      "port": 4000
+    },
+    {
+      "name": "bitevo-admin-local",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "backend", "start"],
+      "port": 4000
+    },
+    {
+      "name": "bitevo-admin-web-preview",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "frontend", "run", "preview", "--", "--port", "2002"],
+      "port": 2002
+    },
+    {
+      "name": "bitevo-admin-web",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "frontend", "run", "dev"],
+      "port": 2001
+    }
+  ]
+}

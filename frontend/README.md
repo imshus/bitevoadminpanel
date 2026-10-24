@@ -26,19 +26,20 @@ Sign in with the admin account listed in `../backend/README.md`.
 
 ## Production
 
-**On the BiteVo server (admin.bitevo.in):** run the built panel with Vite's preview server; nginx forwards
-admin.bitevo.in to port 2001, and `/api` goes on to the API in `API_PROXY_TARGET`:
+**On the BiteVo server (admin.bitevo.in), fastest:** build the panel and let the backend serve it. nginx forwards
+admin.bitevo.in to the backend's port, the same as adminapi.bitevo.in. The backend gzips everything and lets
+browsers keep the built JS/CSS for a year, so a reload only fetches the page and the data. No Vite process runs:
 
 ```bash
-cp .env.example .env          # API_PROXY_TARGET=https://adminapi.bitevo.in
-npm ci && npm run build
-pm2 start npm --name bitevo-admin-web -- run preview
+npm ci && npm run build       # then: pm2 restart <backend>
 ```
 
-After an update: `npm run build && pm2 restart bitevo-admin-web`. Use `preview` (the built panel), not `npm run dev`.
-Vite only answers on the host names in `ALLOWED_HOSTS` in `vite.config.js` (plus localhost).
+Never serve the panel with `npm run dev` on the server: it sends ~36 unminified files (about 3 MB, ~10 s over the
+internet) instead of one 93 KB script. If you'd rather keep a Vite process, use the built panel with
+`pm2 start npm --name bitevo-admin-web -- run preview` (after `cp .env.example .env`). Vite only answers on the host
+names in `ALLOWED_HOSTS` in `vite.config.js` (plus localhost).
 
-Or let the backend serve the build. `npm run build` here, then `npm start` in `../backend` (or just
+Or, more generally, let the backend serve the build. `npm run build` here, then `npm start` in `../backend` (or just
 `npm run host` there, which does both). The panel and API then share one address, e.g. http://localhost:4000, and
 `VITE_API_URL` stays empty.
 
