@@ -60,7 +60,7 @@ router.post('/:id/assign', async (req, res) => {
   if (!LIVE_STATUSES.includes(order.status)) throw badRequest('Only live orders can be reassigned.');
   const agent = await store.findById('agents', String(req.body?.agentId || ''));
   if (!agent || !agent.isActive || agent.kycStatus !== 'verified') throw badRequest('Pick an active, verified agent.');
-  res.json(await saveChange(order, { agentId: agent._id, agentName: agent.name, zone: agent.zone }, { status: 'assigned', note: agent.name }, req.admin));
+  res.json(await saveChange(order, { agentId: agent._id, agentName: agent.name }, { status: 'assigned', note: agent.name }, req.admin));
 });
 
 // refundTo: 'wallet' | 'source' | 'none'. Cash orders can only refund what was paid from the wallet.

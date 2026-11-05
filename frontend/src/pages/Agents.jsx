@@ -7,7 +7,7 @@ import { useToast } from '../components/Toast.jsx';
 import { PageHeader, Badge, Switch, Field, Segmented, SearchInput, Modal, useConfirm, Loading, ErrorState, EmptyState, StatTile, Avatar } from '../components/ui.jsx';
 import { Plus, Pencil, Trash, Bike, Star, Activity, Moon, Shield } from '../components/Icons.jsx';
 
-const EMPTY = { name: '', phone: '+91 ', email: '', zone: '', vehicleType: '', vehicleNumber: '', kycStatus: 'pending', status: 'offline', isActive: true };
+const EMPTY = { name: '', phone: '+91 ', email: '', vehicleType: '', vehicleNumber: '', kycStatus: 'pending', status: 'offline', isActive: true };
 
 function validate(f) {
   const e = {};
@@ -18,9 +18,9 @@ function validate(f) {
   return e;
 }
 
-function AgentForm({ agent, zones, vehicleTypes, onDone }) {
+function AgentForm({ agent, vehicleTypes, onDone }) {
   const toast = useToast();
-  const [form, setForm] = useState(() => ({ ...EMPTY, zone: zones[0], vehicleType: vehicleTypes[0], ...agent }));
+  const [form, setForm] = useState(() => ({ ...EMPTY, vehicleType: vehicleTypes[0], ...agent }));
   const [errors, setErrors] = useState({});
   const [formError, setFormError] = useState(null);
   const [busy, setBusy] = useState(false);
@@ -37,7 +37,6 @@ function AgentForm({ agent, zones, vehicleTypes, onDone }) {
       name: form.name.trim(),
       phone: form.phone.trim(),
       email: form.email.trim(),
-      zone: form.zone,
       vehicleType: form.vehicleType,
       vehicleNumber: form.vehicleType === 'Bicycle' ? '' : form.vehicleNumber.trim().toUpperCase(),
       kycStatus: form.kycStatus,
@@ -68,11 +67,6 @@ function AgentForm({ agent, zones, vehicleTypes, onDone }) {
           </Field>
           <Field label="Email" error={errors.email} hint="Optional.">
             <input className="input" type="email" value={form.email} onChange={e => set('email', e.target.value)} />
-          </Field>
-          <Field label="Delivery zone">
-            <select className="input" value={form.zone} onChange={e => set('zone', e.target.value)}>
-              {zones.map(z => <option key={z}>{z}</option>)}
-            </select>
           </Field>
           <Field label="Vehicle">
             <select className="input" value={form.vehicleType} onChange={e => set('vehicleType', e.target.value)}>
@@ -106,18 +100,15 @@ export default function Agents() {
   const toast = useToast();
   const { data, loading, refreshing, error, reload } = useApi(() => api.list());
   const { data: settings } = useApi(() => settingsApi.get());
-  const zones = settings?.zones || [];
   const [view, patch] = usePatch(reload);
   const [confirm, confirmDialog] = useConfirm();
   const [query, setQuery] = useState('');
   const [status, setStatus] = useState('all');
-  const [zone, setZone] = useState('all');
   const [editing, setEditing] = useState(null);
 
   const all = (data || []).map(view);
   const active = all.filter(a => a.isActive);
   const scoped = all
-    .filter(a => zone === 'all' || a.zone === zone)
     .filter(a => !query || `${a.name} ${a.phone} ${a.vehicleNumber}`.toLowerCase().includes(query.trim().toLowerCase()));
   const STATUS_FILTERS = [
     { value: 'all', label: 'All', match: () => true },
@@ -171,10 +162,6 @@ export default function Agents() {
 
       <div className="toolbar">
         <SearchInput value={query} onChange={setQuery} placeholder="Search name, phone or vehicle" />
-        <select className="input input--auto" value={zone} onChange={e => setZone(e.target.value)} aria-label="Zone">
-          <option value="all">All zones</option>
-          {zones.map(z => <option key={z}>{z}</option>)}
-        </select>
         <Segmented label="Status" value={status} onChange={setStatus}
           options={STATUS_FILTERS.map(f => ({ value: f.value, label: f.label, count: scoped.filter(f.match).length }))} />
       </div>
@@ -207,7 +194,7 @@ export default function Agents() {
                           <Avatar name={a.name} />
                           <div>
                             <div className="cell-title">{a.name}</div>
-                            <div className="cell-sub nowrap" title={`Joined ${dateOnly(a.createdAt)}`}>{a.zone} · {a.phone}</div>
+                            <div className="cell-sub nowrap" title={`Joined ${dateOnly(a.createdAt)}`}>{a.phone}</div>
                           </div>
                         </div>
                       </td>
@@ -254,7 +241,7 @@ export default function Agents() {
       <p className="footnote">Online / on-delivery status comes from the delivery app. Deliveries, average delivery time and rating cover the last 30 days.</p>
 
       <Modal open={Boolean(editing)} onClose={() => setEditing(null)} title={editing?._id ? `Edit ${editing.name}` : 'Add delivery agent'} wide>
-        {editing && settings && <AgentForm agent={editing} zones={settings.zones} vehicleTypes={settings.vehicleTypes} onDone={saved => { setEditing(null); if (saved) reload(); }} />}
+        {editing && settings && <AgentForm agent={editing} vehicleTypes={settings.vehicleTypes} onDone={saved => { setEditing(null); if (saved) reload(); }} />}
       </Modal>
       {confirmDialog}
     </>

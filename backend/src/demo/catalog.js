@@ -17,7 +17,6 @@ export const CATEGORIES = [
   { key: 'combos', label: 'Combos' },
 ];
 
-export const ZONES = ['North Zone', 'South Zone', 'East Zone', 'West Zone', 'Central'];
 export const VEHICLES = ['Bike', 'Scooter', 'E-bike', 'Bicycle'];
 
 // Demo admin accounts. Passwords are hashed with bcrypt before they are stored.
@@ -102,19 +101,19 @@ export const SEED_COUPONS = [
 // Delivery agents. `joined` is days ago; `speed` is their typical delivery time in
 // minutes; both only drive the simulated order history.
 export const SEED_AGENTS = [
-  { n: 1, name: 'Ravi Kumar', zone: 'Central', vehicleType: 'Bike', status: 'online', kycStatus: 'verified', isActive: true, joined: 190, speed: 26 },
-  { n: 2, name: 'Amit Sharma', zone: 'North Zone', vehicleType: 'Scooter', status: 'busy', kycStatus: 'verified', isActive: true, joined: 190, speed: 29 },
-  { n: 3, name: 'Suresh Yadav', zone: 'South Zone', vehicleType: 'Bike', status: 'online', kycStatus: 'verified', isActive: true, joined: 160, speed: 31 },
-  { n: 4, name: 'Mohd. Imran', zone: 'East Zone', vehicleType: 'Bike', status: 'busy', kycStatus: 'verified', isActive: true, joined: 140, speed: 27 },
-  { n: 5, name: 'Vikram Singh', zone: 'West Zone', vehicleType: 'E-bike', status: 'offline', kycStatus: 'verified', isActive: true, joined: 130, speed: 33 },
-  { n: 6, name: 'Deepak Verma', zone: 'Central', vehicleType: 'Scooter', status: 'online', kycStatus: 'verified', isActive: true, joined: 110, speed: 28 },
-  { n: 7, name: 'Priya Das', zone: 'South Zone', vehicleType: 'Scooter', status: 'busy', kycStatus: 'verified', isActive: true, joined: 95, speed: 25 },
-  { n: 8, name: 'Rahul Gupta', zone: 'North Zone', vehicleType: 'Bicycle', status: 'offline', kycStatus: 'verified', isActive: true, joined: 80, speed: 38 },
-  { n: 9, name: 'Arjun Nair', zone: 'East Zone', vehicleType: 'Bike', status: 'online', kycStatus: 'verified', isActive: true, joined: 60, speed: 30 },
-  { n: 10, name: 'Sanjay Patel', zone: 'West Zone', vehicleType: 'Bike', status: 'offline', kycStatus: 'verified', isActive: false, joined: 120, speed: 41 },
-  { n: 11, name: 'Karan Mehta', zone: 'Central', vehicleType: 'E-bike', status: 'offline', kycStatus: 'pending', isActive: true, joined: 3, speed: 30 },
-  { n: 12, name: 'Manoj Tiwari', zone: 'North Zone', vehicleType: 'Bike', status: 'offline', kycStatus: 'pending', isActive: true, joined: 1, speed: 30 },
-  { n: 13, name: 'Nitin Joshi', zone: 'South Zone', vehicleType: 'Scooter', status: 'offline', kycStatus: 'rejected', isActive: false, joined: 12, speed: 30 },
+  { n: 1, name: 'Ravi Kumar', vehicleType: 'Bike', status: 'online', kycStatus: 'verified', isActive: true, joined: 190, speed: 26 },
+  { n: 2, name: 'Amit Sharma', vehicleType: 'Scooter', status: 'busy', kycStatus: 'verified', isActive: true, joined: 190, speed: 29 },
+  { n: 3, name: 'Suresh Yadav', vehicleType: 'Bike', status: 'online', kycStatus: 'verified', isActive: true, joined: 160, speed: 31 },
+  { n: 4, name: 'Mohd. Imran', vehicleType: 'Bike', status: 'busy', kycStatus: 'verified', isActive: true, joined: 140, speed: 27 },
+  { n: 5, name: 'Vikram Singh', vehicleType: 'E-bike', status: 'offline', kycStatus: 'verified', isActive: true, joined: 130, speed: 33 },
+  { n: 6, name: 'Deepak Verma', vehicleType: 'Scooter', status: 'online', kycStatus: 'verified', isActive: true, joined: 110, speed: 28 },
+  { n: 7, name: 'Priya Das', vehicleType: 'Scooter', status: 'busy', kycStatus: 'verified', isActive: true, joined: 95, speed: 25 },
+  { n: 8, name: 'Rahul Gupta', vehicleType: 'Bicycle', status: 'offline', kycStatus: 'verified', isActive: true, joined: 80, speed: 38 },
+  { n: 9, name: 'Arjun Nair', vehicleType: 'Bike', status: 'online', kycStatus: 'verified', isActive: true, joined: 60, speed: 30 },
+  { n: 10, name: 'Sanjay Patel', vehicleType: 'Bike', status: 'offline', kycStatus: 'verified', isActive: false, joined: 120, speed: 41 },
+  { n: 11, name: 'Karan Mehta', vehicleType: 'E-bike', status: 'offline', kycStatus: 'pending', isActive: true, joined: 3, speed: 30 },
+  { n: 12, name: 'Manoj Tiwari', vehicleType: 'Bike', status: 'offline', kycStatus: 'pending', isActive: true, joined: 1, speed: 30 },
+  { n: 13, name: 'Nitin Joshi', vehicleType: 'Scooter', status: 'offline', kycStatus: 'rejected', isActive: false, joined: 12, speed: 30 },
 ].map(a => ({
   ...a,
   _id: seedId('d0', a.n),

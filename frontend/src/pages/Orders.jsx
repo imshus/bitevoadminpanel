@@ -148,7 +148,6 @@ function OrderDetails({ id, onChanged }) {
             <h3>Customer</h3>
             <p><strong>{order.customerName}</strong></p>
             <p className="muted">{order.customerPhone}</p>
-            <p className="muted">{order.zone}</p>
           </section>
           <section>
             <h3>Payment</h3>
@@ -192,7 +191,7 @@ function OrderDetails({ id, onChanged }) {
                 <select className="input" value={agentId} onChange={e => setAgentId(e.target.value)} aria-label="Delivery agent">
                   <option value="">Not assigned</option>
                   {available.map(a => (
-                    <option key={a._id} value={a._id}>{a.name} · {AGENT_STATUS[a.status].label} · {a.zone}</option>
+                    <option key={a._id} value={a._id}>{a.name} · {AGENT_STATUS[a.status].label}</option>
                   ))}
                 </select>
                 <button type="button" className="btn btn--ghost btn--sm" disabled={busy || !agentId || agentId === order.agentId}

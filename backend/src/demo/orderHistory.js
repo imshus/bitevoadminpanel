@@ -100,7 +100,6 @@ function generateDay(dayStart, daysAgo) {
       status: cancelled ? 'cancelled' : 'delivered',
       agentId: cancelled ? null : agent._id,
       agentName: cancelled ? null : agent.name,
-      zone: agent.zone,
       deliveryMins: cancelled ? null : deliveryMins,
       rating: !cancelled && rated ? rating : null,
     });

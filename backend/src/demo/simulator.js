@@ -6,7 +6,6 @@ import { HOURS, ITEM_COUNTS, PAYMENTS, FREE_DELIVERY_ABOVE, DELIVERY_FEE, coupon
 import { customerName, maskedPhone } from './catalog.js';
 import { objectId } from '../lib/ids.js';
 import { couponStatus } from '../lib/rules.js';
-import { getSettings } from '../settings.js';
 import { startOfToday } from '../lib/http.js';
 
 const TICK_MS = 60000;
@@ -60,7 +59,6 @@ async function placeOrder(now) {
     }
   }
 
-  const { zones } = await getSettings();
   const today = new Date(now);
   const seq = (await store.count('orders', { placedAt: { $gte: new Date(startOfToday(now)).toISOString() } })) + 1;
   const mmdd = `${String(today.getMonth() + 1).padStart(2, '0')}${String(today.getDate()).padStart(2, '0')}`;
@@ -74,7 +72,6 @@ async function placeOrder(now) {
     paymentMethod: weighted(PAYMENTS, x => x[1])[0],
     status: 'placed',
     agentId: null, agentName: null,
-    zone: zones[Math.floor(random() * zones.length)],
     deliveryMins: null, rating: null,
     isFirstOrder, walletUsed: 0, refund: null, history: [],
   });

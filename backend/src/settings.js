@@ -1,11 +1,11 @@
-// App-wide lists kept in MongoDB (collection "settings", document "app"): delivery zones, vehicle types,
-// cancel reasons and wallet adjustment reasons. Read by the panel and used to validate input.
+// App-wide lists kept in MongoDB (collection "settings", document "app"): vehicle types, cancel reasons and
+// wallet adjustment reasons. (Delivery zones are gone: riders and orders no longer have one. An older document
+// may still hold a `zones` list; the customer website sends it to older app versions.) Read by the panel and used to validate input.
 import { Router } from 'express';
 import { store } from './db/index.js';
 import { badRequest, nowIso } from './lib/http.js';
 
 export const DEFAULT_SETTINGS = {
-  zones: ['North Zone', 'South Zone', 'East Zone', 'West Zone', 'Central'],
   vehicleTypes: ['Bike', 'Scooter', 'E-bike', 'Bicycle'],
   cancelReasons: ['Customer asked to cancel', 'Item not available', 'Kitchen too busy', 'Address outside delivery area', 'No delivery agent available', 'Suspected fraud'],
   walletReasons: ['Goodwill credit', 'Compensation for an order issue', 'Referral bonus', 'Promotional credit', 'Correction of a wrong credit'],
@@ -25,7 +25,7 @@ router.get('/', async (req, res) => {
   res.json(await getSettings());
 });
 
-// Replaces one or more lists, e.g. { zones: ['North Zone', 'Airport'] }.
+// Replaces one or more lists, e.g. { vehicleTypes: ['Bike', 'Scooter'] }.
 router.patch('/', async (req, res) => {
   await getSettings();
   const changes = {};

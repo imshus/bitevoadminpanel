@@ -6,7 +6,7 @@ import { getSettings } from '../settings.js';
 
 export const router = Router();
 
-const FIELDS = ['name', 'phone', 'email', 'zone', 'vehicleType', 'vehicleNumber', 'kycStatus', 'isActive', 'status'];
+const FIELDS = ['name', 'phone', 'email', 'vehicleType', 'vehicleNumber', 'kycStatus', 'isActive', 'status'];
 const digits = phone => String(phone || '').replace(/\D/g, '').slice(-10);
 
 function normalize(body) {
@@ -21,8 +21,7 @@ async function validate(a, id) {
   if (!a.name) throw badRequest('Name is required.');
   if (digits(a.phone).length !== 10) throw badRequest('Enter a valid 10-digit phone number.');
   if (a.email && !/^\S+@\S+\.\S+$/.test(a.email)) throw badRequest('Enter a valid email, or leave it empty.');
-  const { zones, vehicleTypes } = await getSettings();
-  if (!zones.includes(a.zone)) throw badRequest('Pick a delivery zone.');
+  const { vehicleTypes } = await getSettings();
   if (!vehicleTypes.includes(a.vehicleType)) throw badRequest('Pick a vehicle type.');
   if (!['verified', 'pending', 'rejected'].includes(a.kycStatus)) throw badRequest('Pick an ID check status.');
   if (!['online', 'busy', 'offline'].includes(a.status)) throw badRequest('Unknown agent status.');

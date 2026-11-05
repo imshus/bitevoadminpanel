@@ -115,7 +115,7 @@ export const analytics = {
   get: days => get(`/analytics?days=${days}`),
 };
 
-// Lists stored in MongoDB: zones, vehicleTypes, cancelReasons, walletReasons.
+// Lists stored in MongoDB: vehicleTypes, cancelReasons, walletReasons.
 export const settings = {
   get: () => get('/settings'),
   update: changes => request('PATCH', '/settings', changes),
