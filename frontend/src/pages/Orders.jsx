@@ -169,13 +169,24 @@ function OrderDetails({ id, onChanged }) {
               ))}
               <tr className="bill__sub"><td>Item total</td><td className="num">{money(order.subtotal)}</td></tr>
               <tr className="bill__sub"><td>Delivery fee</td><td className="num">{order.deliveryFee ? money(order.deliveryFee) : 'Free'}</td></tr>
-              {order.couponCode && (
+              {(order.couponCode || order.discount > 0) && (
                 <tr className="bill__sub">
-                  <td><Ticket size={14} /> Coupon <code className="code">{order.couponCode}</code></td>
+                  {/* Without a coupon the discount is a website offer, e.g. the first order's free Cold Coffee. */}
+                  <td><Ticket size={14} /> {order.couponCode ? <>Coupon <code className="code">{order.couponCode}</code></> : 'Offers'}</td>
                   <td className="num">{order.discount ? `− ${money(order.discount)}` : '—'}</td>
                 </tr>
               )}
               <tr className="bill__total"><td>Total</td><td className="num">{money(order.total)}</td></tr>
+              {/* Wallet money already paid part of the total; the rest is collected at the door (or was paid online). */}
+              {order.walletUsed > 0 && order.paymentMethod !== 'Wallet' && (
+                <>
+                  <tr className="bill__sub"><td><Wallet size={14} /> Paid from wallet</td><td className="num">− {money(order.walletUsed)}</td></tr>
+                  <tr className="bill__total">
+                    <td>{order.paymentMethod === 'Cash on delivery' ? 'To collect on delivery' : `Paid online (${order.paymentMethod})`}</td>
+                    <td className="num">{money(Math.max(0, order.total - order.walletUsed))}</td>
+                  </tr>
+                </>
+              )}
               {order.cashback > 0 && (
                 <tr className="bill__sub"><td><Wallet size={14} /> Wallet cashback {order.status === 'delivered' ? 'credited' : 'after delivery'}</td><td className="num">{money(order.cashback)}</td></tr>
               )}
@@ -343,7 +354,12 @@ export default function Orders() {
                         </td>
                         <td className="num nowrap">
                           <strong>{money(o.total)}</strong>
-                          <div className="cell-sub">{o.paymentMethod}{o.couponCode ? ` · ${o.couponCode}` : ''}</div>
+                          <div className="cell-sub">
+                            {o.walletUsed > 0 && o.paymentMethod !== 'Wallet'
+                              ? `${money(o.walletUsed)} wallet · ${money(Math.max(0, o.total - o.walletUsed))} ${o.paymentMethod === 'Cash on delivery' ? 'cash' : o.paymentMethod}`
+                              : o.paymentMethod}
+                            {o.couponCode ? ` · ${o.couponCode}` : ''}
+                          </div>
                         </td>
                         <td className="nowrap">{o.agentName || <span className="muted">Not assigned</span>}</td>
                         <td className="nowrap">
