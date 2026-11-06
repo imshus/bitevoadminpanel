@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { AuthProvider, RequireAuth } from './auth.jsx';
 import { ToastProvider } from './components/Toast.jsx';
@@ -10,9 +11,13 @@ import Agents from './pages/Agents.jsx';
 import LoginStatus from './pages/LoginStatus.jsx';
 import Analytics from './pages/Analytics.jsx';
 import Orders from './pages/Orders.jsx';
+import { Loading } from './components/ui.jsx';
 import Wallet from './pages/Wallet.jsx';
 import Referrals from './pages/Referrals.jsx';
 import NotFound from './pages/NotFound.jsx';
+
+// The map library is large, so the Live map page loads only when it's opened.
+const LiveMap = lazy(() => import('./pages/LiveMap.jsx'));
 
 export default function App() {
   return (
@@ -23,6 +28,7 @@ export default function App() {
           <Route element={<RequireAuth><Layout /></RequireAuth>}>
             <Route index element={<Dashboard />} />
             <Route path="orders" element={<Orders />} />
+            <Route path="live" element={<Suspense fallback={<Loading />}><LiveMap /></Suspense>} />
             <Route path="products" element={<Products />} />
             <Route path="coupons" element={<Coupons />} />
             <Route path="wallet" element={<Wallet />} />

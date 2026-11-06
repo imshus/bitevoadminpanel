@@ -20,6 +20,14 @@ function mongoUri() {
 
 const list = value => (value || '').split(',').map(s => s.trim()).filter(Boolean);
 
+// The kitchen's position on the Live map: the same KITCHEN_LAT / KITCHEN_LNG as the delivery app. Optional.
+function kitchen() {
+  const lat = Number(process.env.KITCHEN_LAT);
+  const lng = Number(process.env.KITCHEN_LNG);
+  if (!process.env.KITCHEN_LAT || !process.env.KITCHEN_LNG || !Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+  return { lat, lng, name: process.env.KITCHEN_NAME || 'BiteVo kitchen' };
+}
+
 // `--port 4000` on the command line wins over PORT (the dev script pins the API to 4000).
 const argPort = Number(process.argv[process.argv.indexOf('--port') + 1] || 0) || 0;
 
@@ -47,8 +55,11 @@ export const config = {
   publicUrl: (process.env.PUBLIC_URL || '').replace(/\/$/, ''),
   // Origins of the admin frontend allowed to call the API with cookies.
   clientOrigins: list(process.env.CLIENT_ORIGIN || 'http://localhost:2001'),
-  // Demo mode seeds an empty database with dummy data and simulates new orders arriving.
-  demoMode: process.env.DEMO_MODE !== 'false',
+  kitchen: kitchen(),
+  // Demo mode seeds an empty database with dummy data, simulates new orders arriving and allows "reset demo data".
+  // On by default only with the local JSON file: on MongoDB (the real, shared database) it needs DEMO_MODE=true,
+  // so a server that's missing the setting can't fill the live database with fake orders or reset it.
+  demoMode: process.env.DEMO_MODE ? process.env.DEMO_MODE === 'true' : !mongoUri(),
   cookie: {
     name: 'bitevo_admin_session',
     secure: process.env.COOKIE_SECURE === 'true',

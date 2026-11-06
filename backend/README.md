@@ -42,8 +42,9 @@ Copy `.env.example` to `.env`. The MongoDB connection is either `MONGODB_URI`, o
 string the API uses a local JSON file (`data/db.json`) instead. **Never commit `.env`**: it holds the database password
 (it's in `.gitignore`).
 
-`DEMO_MODE=true` (the default) seeds an empty database with 180 days of demo data and simulates new orders and
-deliveries. Set `DEMO_MODE=false` for real use.
+Demo mode seeds an empty database with 180 days of demo data, simulates new orders and deliveries, and allows
+"reset demo data". It's on by default only with the local JSON file. With MongoDB it's off unless `DEMO_MODE=true`,
+so the real database never gets fake orders by accident. Don't set it on the live server.
 
 ### Demo sign-in
 

@@ -56,6 +56,12 @@ export const products = resource('/products');
 export const coupons = resource('/coupons');
 export const agents = resource('/agents');
 
+// Riders' live positions and the live orders, for the Live map.
+export const live = {
+  get: () => get('/live'),
+  track: orderId => get(`/live/orders/${orderId}/track`),
+};
+
 export const categories = {
   list: () => get('/categories'),
   create: (label, image = '') => post('/categories', { label, image }),
