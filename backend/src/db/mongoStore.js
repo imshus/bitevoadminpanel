@@ -69,6 +69,10 @@ export async function createMongoStore(uri, dbName) {
     async ensureIndexes(specs) {
       for (const [name, keys, options] of specs) await col(name).createIndex(keys, options);
     },
+    // A MongoDB change stream on one collection (live.js): every write to it, by any of BiteVo's APIs.
+    watch(name, pipeline = [], options = {}) {
+      return col(name).watch(pipeline, options);
+    },
     async close() {
       await client.close();
     },

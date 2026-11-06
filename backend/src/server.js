@@ -6,6 +6,7 @@ import { createApp } from './app.js';
 import { storageLabel } from './lib/storage.js';
 import { seedIfEmpty, addDemoCombos } from './demo/seed.js';
 import { startSimulator } from './demo/simulator.js';
+import { startLive } from './live.js';
 
 try {
   await connectStore();
@@ -46,8 +47,12 @@ const server = app.listen(config.port, config.host, () => {
   }
 });
 
+// Order and rider changes pushed to the panel's open pages (WebSocket /api/live).
+const live = startLive(server);
+
 async function shutdown() {
   stopSimulator();
+  live?.close();
   server.close();
   await store.close();
   process.exit(0);

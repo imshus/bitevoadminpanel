@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { agents as api, settings as settingsApi } from '../api/index.js';
 import { useApi, usePatch, usePageTitle } from '../lib/useApi.js';
+import { useAuth } from '../auth.jsx';
+import { useLive, useDebounced } from '../lib/live.js';
 import { mins, pct, dateOnly } from '../lib/format.js';
 import { AGENT_STATUS, KYC_STATUS } from '../lib/status.js';
 import { useToast } from '../components/Toast.jsx';
@@ -101,6 +103,10 @@ export default function Agents() {
   const { data, loading, refreshing, error, reload } = useApi(() => api.list());
   const { data: settings } = useApi(() => settingsApi.get());
   const [view, patch] = usePatch(reload);
+  // Riders going online, offline or out on a delivery show at once (lib/live.js).
+  const { user } = useAuth();
+  const reloadSoon = useDebounced(reload);
+  useLive(m => { if (m.type !== 'order') reloadSoon(); }, user?._id);
   const [confirm, confirmDialog] = useConfirm();
   const [query, setQuery] = useState('');
   const [status, setStatus] = useState('all');

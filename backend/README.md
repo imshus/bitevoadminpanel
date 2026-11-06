@@ -109,6 +109,24 @@ is part of a combo.
 - If the panel is on another domain: `CLIENT_ORIGIN=https://admin.your-domain`, `COOKIE_SAMESITE=none`, `PUBLIC_URL=https://api.your-domain`.
 - Uploaded photos go to Supabase Storage (`SUPABASE_URL`, `SUPABASE_SECRET_KEY`), so nothing needs to stay on the
   server's disk. Keep the secret key on the server only; it's never sent to the browser.
+- `DEMO_MODE=false` for real use: demo mode keeps placing fake orders (and marking them delivered) in whatever
+  database it's connected to.
+- **Live updates** come over a WebSocket at `/api/live` (`src/live.js`): MongoDB change streams on `orders` and
+  `agents` tell the panel's Orders and Team pages the moment an order is placed on the website, moved along here
+  or by a rider in the rider app, or a rider goes online, offline or out on a delivery. It needs MongoDB as a
+  replica set (any Atlas cluster is). Behind nginx, pass the upgrade on, or the pages fall back to refreshing
+  every 30 s:
+
+  ```nginx
+  location /api/live {
+      proxy_pass http://127.0.0.1:4000;
+      proxy_http_version 1.1;
+      proxy_set_header Upgrade $http_upgrade;
+      proxy_set_header Connection "upgrade";
+      proxy_set_header Host $host;
+      proxy_read_timeout 1h;
+  }
+  ```
 
 ## Code
 
