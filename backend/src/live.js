@@ -1,4 +1,4 @@
-// Live updates for the admin panel: a WebSocket at /api/live. A signed-in admin's pages open it and hear
+// Live updates for the admin panel: a WebSocket at /api/ws. A signed-in admin's pages open it and hear
 //   { type: 'order', id, status } when any order changes: placed on the website, accepted, assigned or cancelled
 //     here, accepted, picked up or delivered in the rider app;
 //   { type: 'agent', id, status } when a rider goes online or offline, or starts or finishes a delivery;
@@ -6,13 +6,13 @@
 // The changes come from MongoDB change streams on `orders` and `agents`, so writes by the website's and the rider
 // app's APIs count as much as this API's own. Riders' positions alone (every few seconds) aren't sent. Without
 // MongoDB (the JSON demo store) there's no stream: pages refresh on their timers, as they also do whenever the
-// socket is down. Behind nginx, /api/live needs the WebSocket upgrade passed on (see README).
+// socket is down. Behind nginx, /api/ws needs the WebSocket upgrade passed on (see README).
 import { WebSocketServer } from 'ws';
 import { store } from './db/index.js';
 import { config } from './config.js';
 import { findSession } from './auth.js';
 
-const PATH = '/api/live';
+const PATH = '/api/ws'; // (/api/live is the Live map's data, routes/live.js)
 const PING_MS = 25000; // keeps proxies from closing a quiet connection, and finds dead ones
 const COALESCE_MS = 1000;
 const RESTART_MS = 5000;

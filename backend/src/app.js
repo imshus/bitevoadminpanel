@@ -16,6 +16,7 @@ import { products, categories, uploads } from './routes/products.js';
 import { router as couponRoutes } from './routes/coupons.js';
 import { router as agentRoutes } from './routes/agents.js';
 import { router as orderRoutes } from './routes/orders.js';
+import { router as liveRoutes } from './routes/live.js';
 import { wallets, customers } from './routes/wallets.js';
 import { router as referralRoutes } from './routes/referrals.js';
 import { sessions, loginEvents } from './routes/activity.js';
@@ -64,6 +65,7 @@ export function createApp() {
   app.use('/api/coupons', couponRoutes);
   app.use('/api/agents', agentRoutes);
   app.use('/api/orders', orderRoutes);
+  app.use('/api/live', liveRoutes);
   app.use('/api/wallets', wallets);
   app.use('/api/customers', customers);
   app.use('/api/referrals', referralRoutes);

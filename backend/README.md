@@ -42,8 +42,9 @@ Copy `.env.example` to `.env`. The MongoDB connection is either `MONGODB_URI`, o
 string the API uses a local JSON file (`data/db.json`) instead. **Never commit `.env`**: it holds the database password
 (it's in `.gitignore`).
 
-`DEMO_MODE=true` (the default) seeds an empty database with 180 days of demo data and simulates new orders and
-deliveries. Set `DEMO_MODE=false` for real use.
+Demo mode seeds an empty database with 180 days of demo data, simulates new orders and deliveries, and allows
+"reset demo data". It's on by default only with the local JSON file. With MongoDB it's off unless `DEMO_MODE=true`,
+so the real database never gets fake orders by accident. Don't set it on the live server.
 
 ### Demo sign-in
 
@@ -109,16 +110,16 @@ is part of a combo.
 - If the panel is on another domain: `CLIENT_ORIGIN=https://admin.your-domain`, `COOKIE_SAMESITE=none`, `PUBLIC_URL=https://api.your-domain`.
 - Uploaded photos go to Supabase Storage (`SUPABASE_URL`, `SUPABASE_SECRET_KEY`), so nothing needs to stay on the
   server's disk. Keep the secret key on the server only; it's never sent to the browser.
-- `DEMO_MODE=false` for real use: demo mode keeps placing fake orders (and marking them delivered) in whatever
-  database it's connected to.
-- **Live updates** come over a WebSocket at `/api/live` (`src/live.js`): MongoDB change streams on `orders` and
+- Never set `DEMO_MODE=true` on the real database: demo mode keeps placing fake orders (and marking them
+  delivered) in whatever database it's connected to. With MongoDB it's off unless set.
+- **Live updates** come over a WebSocket at `/api/ws` (`src/live.js`): MongoDB change streams on `orders` and
   `agents` tell the panel's Orders and Team pages the moment an order is placed on the website, moved along here
   or by a rider in the rider app, or a rider goes online, offline or out on a delivery. It needs MongoDB as a
   replica set (any Atlas cluster is). Behind nginx, pass the upgrade on, or the pages fall back to refreshing
   every 30 s:
 
   ```nginx
-  location /api/live {
+  location /api/ws {
       proxy_pass http://127.0.0.1:4000;
       proxy_http_version 1.1;
       proxy_set_header Upgrade $http_upgrade;

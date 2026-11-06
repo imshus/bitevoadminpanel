@@ -47,7 +47,7 @@ const server = app.listen(config.port, config.host, () => {
   }
 });
 
-// Order and rider changes pushed to the panel's open pages (WebSocket /api/live).
+// Order and rider changes pushed to the panel's open pages (WebSocket /api/ws).
 const live = startLive(server);
 
 async function shutdown() {

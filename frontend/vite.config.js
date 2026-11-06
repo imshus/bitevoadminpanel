@@ -12,7 +12,7 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, fileURLToPath(new URL('.', import.meta.url)), '');
   const target = (env.API_PROXY_TARGET || 'http://localhost:4000').replace(/\/+$/, '');
   // changeOrigin: an API behind nginx only answers requests that carry its own host name. `ws` passes on the live
-  // updates (/api/live, a WebSocket).
+  // updates (/api/ws, a WebSocket).
   const proxy = { '/api': { target, changeOrigin: true, ws: true }, '/uploads': { target, changeOrigin: true } };
   return {
     plugins: [react()],

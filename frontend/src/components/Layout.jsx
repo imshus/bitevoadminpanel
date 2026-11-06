@@ -2,11 +2,12 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../auth.jsx';
 import { Avatar, Logo } from './ui.jsx';
-import { Dashboard, Box, Ticket, Bike, LogIn, LogOut, Chart, Menu, X, Sun, Moon, ChevronDown, Bag, Wallet, UserPlus } from './Icons.jsx';
+import { Dashboard, Box, Ticket, Bike, LogIn, LogOut, Chart, Menu, X, Sun, Moon, ChevronDown, Bag, Wallet, UserPlus, MapPin } from './Icons.jsx';
 
 const NAV = [
   { to: '/', label: 'Dashboard', icon: Dashboard, end: true },
   { to: '/orders', label: 'Orders', icon: Bag },
+  { to: '/live', label: 'Live map', icon: MapPin },
   { to: '/products', label: 'Products', icon: Box },
   { to: '/coupons', label: 'Coupons', icon: Ticket },
   { to: '/wallet', label: 'Wallet', icon: Wallet },

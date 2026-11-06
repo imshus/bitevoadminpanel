@@ -1,4 +1,4 @@
-// Live updates from the admin API's WebSocket (/api/live, backend/src/live.js):
+// Live updates from the admin API's WebSocket (/api/ws, backend/src/live.js):
 //   { type: 'order', id, status } when any order changes (website, this panel, the rider app);
 //   { type: 'agent', id, status } when a rider goes online/offline or starts/finishes a delivery;
 //   { type: 'resync' } after the socket was down (something may have changed meanwhile).
@@ -7,7 +7,7 @@
 import { useEffect, useRef, useState } from 'react';
 
 const BASE = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
-const socketUrl = () => `${(BASE || window.location.origin).replace(/^http/, 'ws')}/api/live`;
+const socketUrl = () => `${(BASE || window.location.origin).replace(/^http/, 'ws')}/api/ws`;
 
 const listeners = new Set();
 const upListeners = new Set();

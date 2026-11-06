@@ -1,0 +1,75 @@
+// The Live map: riders with their latest position from the delivery app, and the live orders with where
+// they're going and, once out for delivery, where their rider is. The delivery app writes all of it:
+// agents.location { lat, lng, accuracy, heading, speed, at } while a rider is online, orders.riderLocation
+// while an order is out for delivery, and riderTrack (one point per fix) for the route driven.
+import { Router } from 'express';
+import { store } from '../db/index.js';
+import { config } from '../config.js';
+import { notFound, DAY } from '../lib/http.js';
+import { LIVE_STATUSES } from '../lib/rules.js';
+
+export const router = Router();
+
+const LIVE_FOR_MS = DAY; // older orders still marked live (never accepted or finished) stay off the map
+const MAX_ORDERS = 200;
+const MAX_TRACK_POINTS = 400;
+const IST_MS = 330 * 60000; // the delivery app keeps the day's distance per Indian date
+
+const point = p => (p && Number.isFinite(p.lat) && Number.isFinite(p.lng)
+  ? { lat: p.lat, lng: p.lng, accuracy: p.accuracy ?? null, heading: p.heading ?? null, speed: p.speed ?? null, at: p.at || null }
+  : null);
+const dropPoint = a => (a && Number.isFinite(a.lat) && Number.isFinite(a.lng) ? { lat: a.lat, lng: a.lng } : null);
+
+router.get('/', async (req, res) => {
+  const since = new Date(Date.now() - LIVE_FOR_MS).toISOString();
+  const [agents, orders] = await Promise.all([
+    store.find('agents', { isActive: true }, { sort: { name: 1 } }),
+    store.find('orders', { status: { $in: LIVE_STATUSES }, placedAt: { $gte: since } }, { sort: { placedAt: -1 }, limit: MAX_ORDERS }),
+  ]);
+  const today = new Date(Date.now() + IST_MS).toISOString().slice(0, 10);
+
+  res.json({
+    kitchen: config.kitchen,
+    riders: agents.map(a => ({
+      _id: a._id,
+      name: a.name,
+      phone: a.phone,
+      vehicleType: a.vehicleType,
+      vehicleNumber: a.vehicleNumber || '',
+      kycStatus: a.kycStatus,
+      status: a.status || 'offline',
+      onlineVia: a.onlineVia || null, // 'app' when the rider went online in the delivery app
+      onlineAt: a.status !== 'offline' ? a.onlineAt || null : null,
+      location: point(a.location),
+      kmToday: a.odometer?.day === today ? Math.round(a.odometer.km * 10) / 10 : 0,
+      orderIds: orders.filter(o => o.agentId === a._id).map(o => o._id),
+    })),
+    orders: orders.map(o => ({
+      _id: o._id,
+      orderNo: o.orderNo,
+      status: o.status,
+      placedAt: o.placedAt,
+      dispatchedAt: o.dispatchedAt || null,
+      customerName: o.customerName,
+      customerPhone: o.customerPhone,
+      address: o.address ? { label: o.address.label || '', line1: o.address.line1 || '', line2: o.address.line2 || '', landmark: o.address.landmark || '', area: o.address.area || '' } : null,
+      drop: dropPoint(o.address),
+      agentId: o.agentId || null,
+      agentName: o.agentName || null,
+      // Set by the rider-assignment flow when it's in use ('requested' → 'accepted' / 'declined').
+      riderStatus: o.riderStatus || null,
+      riderAcceptedAt: o.riderAcceptedAt || null,
+      riderLocation: o.status === 'out_for_delivery' ? point(o.riderLocation) : null,
+    })),
+    at: new Date().toISOString(),
+  });
+});
+
+// The route driven so far for one order, thinned to at most MAX_TRACK_POINTS points: [[lat, lng], …].
+router.get('/orders/:id/track', async (req, res) => {
+  const order = await store.findById('orders', req.params.id);
+  if (!order) throw notFound('This order no longer exists.');
+  const points = await store.find('riderTrack', { orderId: order._id }, { sort: { at: 1 }, limit: 5000 });
+  const every = Math.max(1, Math.ceil(points.length / MAX_TRACK_POINTS));
+  res.json({ points: points.filter((p, i) => i % every === 0 || i === points.length - 1).map(p => [p.lat, p.lng]) });
+});
