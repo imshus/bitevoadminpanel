@@ -56,6 +56,8 @@ export const config = {
   // Origins of the admin frontend allowed to call the API with cookies.
   clientOrigins: list(process.env.CLIENT_ORIGIN || 'http://localhost:2001'),
   kitchen: kitchen(),
+  // Road routes and arrival times on the Live map (an OSRM server, like the delivery app's). Empty = straight lines.
+  routingUrl: (process.env.ROUTING_URL ?? 'https://router.project-osrm.org').trim().replace(/\/+$/, ''),
   // Demo mode seeds an empty database with dummy data, simulates new orders arriving and allows "reset demo data".
   // On by default only with the local JSON file: on MongoDB (the real, shared database) it needs DEMO_MODE=true,
   // so a server that's missing the setting can't fill the live database with fake orders or reset it.
