@@ -592,6 +592,23 @@ textarea.input { height: auto; padding: 11px 14px; resize: vertical; }
 .bill .num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .bill__sub td { color: var(--muted); font-size: 13px; }
 .bill__total td { font-weight: 700; font-size: 15px; border-bottom: 0; padding-top: 10px; }
+.address-box {
+  display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 12px; align-items: start;
+  padding: 14px 16px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--brand-tint);
+}
+.address-box__icon { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; background: var(--brand-soft); color: var(--brand-ink); }
+.address-box__head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 4px; font-size: 13px; }
+.address-box__text { overflow-wrap: anywhere; }
+.address-box__map { font-size: 12.5px; }
+.address-box__actions { display: flex; flex-direction: column; gap: 8px; }
+.order-note {
+  display: flex; gap: 8px; align-items: flex-start; margin-bottom: 10px;
+  padding: 10px 14px; border-radius: var(--radius-sm); background: var(--brand-tint); border: 1px dashed var(--border-strong); font-size: 13.5px;
+}
+.order-note svg { flex-shrink: 0; margin-top: 2px; color: var(--brand-ink); }
+.cell-addr { display: flex; align-items: center; gap: 4px; max-width: 190px; }
+.cell-addr svg { flex-shrink: 0; }
+.cell-addr span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .assign { display: flex; gap: 8px; align-items: center; }
 .assign .input { height: 40px; }
 .timeline { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
@@ -738,6 +755,9 @@ textarea.input { height: auto; padding: 11px 14px; resize: vertical; }
   .form-grid { grid-template-columns: minmax(0, 1fr); }
   .form-row-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .order-details__grid { grid-template-columns: minmax(0, 1fr); }
+  .address-box { grid-template-columns: auto minmax(0, 1fr); }
+  .address-box__actions { grid-column: 1 / -1; flex-direction: row; }
+  .address-box__actions .btn { flex: 1; }
   .row-actions { flex-direction: column; align-items: stretch; }
   .image-field { gap: 12px; }
   .image-field__preview { width: 84px; height: 84px; }

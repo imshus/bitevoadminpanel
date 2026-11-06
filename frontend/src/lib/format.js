@@ -61,5 +61,18 @@ export function fromInputDate(str, endOfDay = false) {
   return date.toISOString();
 }
 
+// An order's delivery address (saved on the order by the website) as one line: flat, street/area, landmark, pincode.
+export const addressLine = a =>
+  !a ? '' : [a.line1, a.line2, a.landmark && `Near ${a.landmark}`, a.pincode].filter(Boolean).join(', ') || a.mapAddress || '';
+
+// The short form for tables: the area first (or the street line when there's no map pin), then flat/house.
+export const addressShort = a => (!a ? '' : [a.area || a.line2, a.line1].filter(Boolean).join(' · '));
+
+export const hasPin = a => Number.isFinite(a?.lat) && Number.isFinite(a?.lng);
+
+// Google Maps at the customer's map pin, or a search for the typed address when they didn't pin it.
+export const mapsUrl = a =>
+  `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(hasPin(a) ? `${a.lat},${a.lng}` : addressLine(a))}`;
+
 export const initials = name =>
   (name || '?').split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0].toUpperCase()).join('');

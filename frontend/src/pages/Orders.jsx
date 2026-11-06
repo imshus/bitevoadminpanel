@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
 import { orders as api, agents as agentApi, settings as settingsApi } from '../api/index.js';
 import { useApi, usePageTitle } from '../lib/useApi.js';
-import { money, num, timeAgo, dateTime } from '../lib/format.js';
+import { money, num, timeAgo, dateTime, addressLine, addressShort, hasPin, mapsUrl } from '../lib/format.js';
 import { ORDER_STATUS, AGENT_STATUS } from '../lib/status.js';
 import { useToast } from '../components/Toast.jsx';
 import { PageHeader, Badge, Segmented, SearchInput, Modal, Loading, ErrorState, EmptyState, StatTile, Pagination, Field } from '../components/ui.jsx';
-import { Bag, Flame, Clock, Check, XCircle, Refresh, Ticket, Wallet } from '../components/Icons.jsx';
+import { Bag, Flame, Clock, Check, XCircle, Refresh, Ticket, Wallet, MapPin, Copy, Pencil } from '../components/Icons.jsx';
 
 const PAGE_SIZE = 20;
 const AUTO_REFRESH_MS = 30000;
@@ -56,6 +56,60 @@ function Timeline({ order }) {
         </li>
       ))}
     </ol>
+  );
+}
+
+// The Clipboard API needs HTTPS (or localhost) and permission; on a phone opening the panel over the Wi-Fi
+// address (plain http) it's missing, so fall back to the old select-and-copy.
+async function copyText(text) {
+  try {
+    await navigator.clipboard.writeText(text);
+    return true;
+  } catch {
+    const el = document.createElement('textarea');
+    el.value = text;
+    el.setAttribute('readonly', '');
+    el.style.cssText = 'position:fixed;top:0;left:0;opacity:0';
+    document.body.appendChild(el);
+    el.select();
+    const ok = document.execCommand('copy');
+    el.remove();
+    return ok;
+  }
+}
+
+// Where the order goes, as the customer saved it on the website, with a map link and a copy button for the rider.
+function DeliveryAddress({ order }) {
+  const toast = useToast();
+  const a = order.address;
+  if (!a) return <p className="muted">No address was saved with this order.</p>;
+
+  const copy = async () => {
+    const text = [order.customerName, order.customerPhone, addressLine(a), hasPin(a) && mapsUrl(a)].filter(Boolean).join('\n');
+    if (await copyText(text)) toast('Address copied');
+    else toast('Couldn’t copy the address', 'critical');
+  };
+
+  return (
+    <div className="address-box">
+      <span className="address-box__icon"><MapPin size={18} /></span>
+      <div className="address-box__text">
+        <p className="address-box__head">
+          <span className="tag">{a.label || 'Address'}</span>
+          {a.area && <span className="muted">{a.area}</span>}
+        </p>
+        {a.line1 && <p><strong>{a.line1}</strong></p>}
+        {a.line2 && <p>{a.line2}</p>}
+        {a.landmark && <p>Landmark: {a.landmark}</p>}
+        {a.pincode && <p className="muted">Pincode {a.pincode}</p>}
+        {a.mapAddress && <p className="muted address-box__map">Map pin: {a.mapAddress}</p>}
+        {!hasPin(a) && <p className="muted address-box__map">Typed without a map pin, so Maps searches the address.</p>}
+      </div>
+      <div className="address-box__actions">
+        <a className="btn btn--ghost btn--sm" href={mapsUrl(a)} target="_blank" rel="noreferrer"><MapPin size={14} /> Open in Maps</a>
+        <button type="button" className="btn btn--ghost btn--sm" onClick={copy}><Copy size={14} /> Copy</button>
+      </div>
+    </div>
   );
 }
 
@@ -158,7 +212,14 @@ function OrderDetails({ id, onChanged }) {
         </div>
 
         <section>
+          <h3>Delivery address</h3>
+          <DeliveryAddress order={order} />
+        </section>
+
+        <section>
           <h3>Items ({itemCount(order)})</h3>
+          {/* The website's "Cooking requests" box (and "No cutlery please"). */}
+          {order.note && <p className="order-note"><Pencil size={14} /><span><strong>Customer’s note:</strong> {order.note}</span></p>}
           <table className="bill">
             <tbody>
               {order.items.map(it => (
@@ -273,7 +334,7 @@ export default function Orders() {
 
   const all = data || [];
   const q = query.trim().toLowerCase();
-  const searched = all.filter(o => !q || `${o.orderNo} ${o.customerName} ${o.customerPhone} ${o.agentName || ''}`.toLowerCase().includes(q));
+  const searched = all.filter(o => !q || `${o.orderNo} ${o.customerName} ${o.customerPhone} ${o.agentName || ''} ${addressLine(o.address)} ${o.address?.area || ''}`.toLowerCase().includes(q));
   const rows = searched.filter(STATUS_FILTERS.find(f => f.value === status).match);
   const shown = rows.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
   const count = key => all.filter(o => o.status === key).length;
@@ -309,7 +370,7 @@ export default function Orders() {
       </div>
 
       <div className="toolbar">
-        <SearchInput value={query} onChange={setQuery} placeholder="Search order, customer or agent" />
+        <SearchInput value={query} onChange={setQuery} placeholder="Search order, customer, address or agent" />
         <select className="input input--auto" value={days} onChange={e => setDays(Number(e.target.value))} aria-label="Date range">
           {RANGES.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
         </select>
@@ -347,6 +408,11 @@ export default function Orders() {
                         <td className="nowrap">
                           <div className="cell-title">{o.customerName}</div>
                           <div className="cell-sub">{o.customerPhone}</div>
+                          {o.address && (
+                            <div className="cell-sub cell-addr" title={addressLine(o.address)}>
+                              <MapPin size={12} /><span>{addressShort(o.address)}</span>
+                            </div>
+                          )}
                         </td>
                         <td>
                           <div>{itemsSummary(o)}{o.items.length > 1 && <span className="muted"> + {o.items.length - 1} more</span>}</div>
