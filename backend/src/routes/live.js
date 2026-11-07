@@ -7,6 +7,7 @@ import { store } from '../db/index.js';
 import { config } from '../config.js';
 import { notFound, DAY } from '../lib/http.js';
 import { LIVE_STATUSES } from '../lib/rules.js';
+import { orderRoute } from '../lib/routing.js';
 
 export const router = Router();
 
@@ -27,6 +28,13 @@ router.get('/', async (req, res) => {
     store.find('orders', { status: { $in: LIVE_STATUSES }, placedAt: { $gte: since } }, { sort: { placedAt: -1 }, limit: MAX_ORDERS }),
   ]);
   const today = new Date(Date.now() + IST_MS).toISOString().slice(0, 10);
+
+  // On the way: the road route from the rider to the customer's pin, with distance and driving time.
+  const agentsById = new Map(agents.map(a => [a._id, a]));
+  const riderAt = o => point(o.riderLocation) || (agentsById.get(o.agentId)?.status !== 'offline' ? point(agentsById.get(o.agentId)?.location) : null);
+  const routes = new Map(await Promise.all(orders
+    .filter(o => o.status === 'out_for_delivery' && riderAt(o) && dropPoint(o.address))
+    .map(async o => [o._id, await orderRoute(o._id, riderAt(o), dropPoint(o.address))])));
 
   res.json({
     kitchen: config.kitchen,
@@ -60,6 +68,7 @@ router.get('/', async (req, res) => {
       riderStatus: o.riderStatus || null,
       riderAcceptedAt: o.riderAcceptedAt || null,
       riderLocation: o.status === 'out_for_delivery' ? point(o.riderLocation) : null,
+      route: routes.get(o._id) || null, // { distanceM, durationS, line } while out for delivery
     })),
     at: new Date().toISOString(),
   });
