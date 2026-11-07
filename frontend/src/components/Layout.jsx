@@ -13,6 +13,7 @@ const NAV = [
   { to: '/wallet', label: 'Wallet', icon: Wallet },
   { to: '/referrals', label: 'Referrals', icon: UserPlus },
   { to: '/agents', label: 'Delivery agents', icon: Bike },
+  { to: '/rider-applications', label: 'Rider applications', icon: UserPlus },
   { to: '/logins', label: 'Login status', icon: LogIn },
   { to: '/analytics', label: 'Analytics', icon: Chart },
 ];

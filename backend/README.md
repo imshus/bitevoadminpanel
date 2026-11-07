@@ -67,6 +67,7 @@ Everything is under `/api` and needs a signed-in admin, except `/api/auth/login`
 | Orders | `GET /orders?days=1`, `GET /orders/:id`, `POST /orders/:id/advance`, `/assign`, `/cancel` |
 | Wallets | `GET /wallets`, `POST /wallets/:customerId/adjustments`, `GET /customers?search=` |
 | Team | `GET/POST /agents`, `PATCH/DELETE /agents/:id` |
+| Rider applications | `GET /rider-applications`, `POST /rider-applications/:id/contacted`, `/approve` (adds the applicant as an agent, ID check pending), `/reject` |
 | Login status | `GET /sessions`, `POST /sessions/:id/revoke`, `GET /login-events` |
 | Reports | `GET /analytics?days=30`, `GET /dashboard` |
 | Settings | `GET /settings`, `PATCH /settings` (zones, vehicle types, cancel reasons, wallet reasons) |
@@ -135,7 +136,7 @@ is part of a combo.
 src/
   server.js, app.js  start-up, middleware, route table
   auth.js            sessions and the "must be signed in" guard
-  routes/            auth, products (+categories, uploads), coupons, agents, orders, wallets (+customers), activity, reports
+  routes/            auth, products (+categories, uploads), coupons, agents, riderApplications, orders, wallets (+customers), activity, reports
   db/                MongoDB store, JSON-file fallback, indexes
   demo/              demo data, seeding rules, live order simulator
   analytics.js       dashboard and analytics maths

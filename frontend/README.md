@@ -55,7 +55,9 @@ The backend must list this site in `CLIENT_ORIGIN`.
 ## Pages
 
 Dashboard · Orders · Products (with **combos**, photo upload, custom categories, headings) · Coupons (percentage,
-flat, free delivery, free product, wallet cashback) · Wallet · Delivery agents · Login status · Analytics.
+flat, free delivery, free product, wallet cashback) · Wallet · Delivery agents · Rider applications (from the
+website's "Become a delivery partner" page: call, approve as an agent with the ID check pending, or turn down) ·
+Login status · Analytics.
 
 **Categories:** in the product form, *+ Add a new category…* opens a popup; the new category is saved to the
 database immediately and selected.

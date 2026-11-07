@@ -14,6 +14,7 @@ import Orders from './pages/Orders.jsx';
 import { Loading } from './components/ui.jsx';
 import Wallet from './pages/Wallet.jsx';
 import Referrals from './pages/Referrals.jsx';
+import RiderApplications from './pages/RiderApplications.jsx';
 import NotFound from './pages/NotFound.jsx';
 
 // The map library is large, so the Live map page loads only when it's opened.
@@ -34,6 +35,7 @@ export default function App() {
             <Route path="wallet" element={<Wallet />} />
             <Route path="referrals" element={<Referrals />} />
             <Route path="agents" element={<Agents />} />
+            <Route path="rider-applications" element={<RiderApplications />} />
             <Route path="logins" element={<LoginStatus />} />
             <Route path="analytics" element={<Analytics />} />
             <Route path="*" element={<NotFound />} />

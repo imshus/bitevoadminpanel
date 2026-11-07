@@ -102,6 +102,14 @@ export const customers = {
   search: query => (query.trim() ? get(`/customers?search=${encodeURIComponent(query.trim())}`) : Promise.resolve([])),
 };
 
+// Applications from the website's "Become a delivery partner" page.
+export const riderApplications = {
+  list: () => get('/rider-applications'),
+  contacted: id => post(`/rider-applications/${id}/contacted`),
+  approve: id => post(`/rider-applications/${id}/approve`),
+  reject: (id, reason) => post(`/rider-applications/${id}/reject`, { reason }),
+};
+
 // Refer & earn: the website records referrals and pays the rewards; the panel can void a pending one.
 export const referrals = {
   list: () => get('/referrals'),
