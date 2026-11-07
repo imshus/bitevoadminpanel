@@ -55,6 +55,16 @@ export const ORDER_STATUS = {
   cancelled: { label: 'Cancelled', tone: 'critical' },
 };
 
+// The rider's two stages on a live order: 1. pick up from the kitchen, 2. deliver to the customer (the same words
+// as the rider app). step 0 = no rider yet; null for orders that aren't live.
+export function riderStage(o) {
+  if (!['placed', 'preparing', 'out_for_delivery'].includes(o.status)) return null;
+  if (!o.agentId) return { step: 0, label: o.riderStatus === 'declined' ? 'Rider declined · needs another rider' : 'No rider yet' };
+  if (o.status === 'out_for_delivery') return { step: 2, label: 'Step 2 · Delivering to the customer' };
+  if (o.riderStatus === 'requested') return { step: 1, label: 'Step 1 · Waiting for the rider to accept' };
+  return { step: 1, label: 'Step 1 · Going to the kitchen to pick up' };
+}
+
 export const WALLET_TXN = {
   cashback: { label: 'Cashback', tone: 'good' },
   refund: { label: 'Refund', tone: 'info' },
