@@ -611,6 +611,12 @@ textarea.input { height: auto; padding: 11px 14px; resize: vertical; }
 .cell-addr span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .assign { display: flex; gap: 8px; align-items: center; }
 .assign .input { height: 40px; }
+/* The rider's two stages on an order: 1. pick up from kitchen, 2. deliver to customer. */
+.rider-steps { list-style: none; display: flex; gap: 6px; margin: 10px 0 4px; padding: 0; font-size: 13px; }
+.rider-steps li { flex: 1; display: flex; align-items: center; gap: 6px; padding: 6px 8px; border-radius: 8px; border: 1px solid currentColor; color: var(--muted); opacity: .75; }
+.rider-steps li span { display: grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; font-size: 11px; font-weight: 700; border: 1.5px solid currentColor; flex: none; }
+.rider-steps li.is-now { color: var(--brand); opacity: 1; font-weight: 600; }
+.rider-steps li.is-done { color: var(--good-text); opacity: 1; }
 .timeline { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
 .timeline li { position: relative; display: grid; grid-template-columns: 22px 1fr; column-gap: 10px; color: var(--muted); }
 .timeline li:not(:last-child)::after { content: ""; position: absolute; left: 10px; top: 22px; bottom: -10px; width: 2px; background: var(--border); }

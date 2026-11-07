@@ -2,13 +2,15 @@ import { useEffect, useState } from 'react';
 import { orders as api, agents as agentApi, settings as settingsApi } from '../api/index.js';
 import { useApi, usePageTitle } from '../lib/useApi.js';
 import { money, num, timeAgo, dateTime, addressLine, addressShort, hasPin, mapsUrl } from '../lib/format.js';
-import { ORDER_STATUS, AGENT_STATUS } from '../lib/status.js';
+import { ORDER_STATUS, AGENT_STATUS, riderStage } from '../lib/status.js';
 import { useToast } from '../components/Toast.jsx';
 import { PageHeader, Badge, Segmented, SearchInput, Modal, Loading, ErrorState, EmptyState, StatTile, Pagination, Field } from '../components/ui.jsx';
 import { Bag, Flame, Clock, Check, XCircle, Refresh, Ticket, Wallet, MapPin, Copy, Pencil } from '../components/Icons.jsx';
+import { useAuth } from '../auth.jsx';
+import { useLive, useDebounced } from '../lib/live.js';
 
 const PAGE_SIZE = 20;
-const AUTO_REFRESH_MS = 30000;
+const AUTO_REFRESH_MS = 30000; // a safety net: changes arrive over the live socket (lib/live.js) at once
 const LIVE = ['placed', 'preparing', 'out_for_delivery'];
 
 // The next step for a live order, and the button that moves it there.
@@ -156,7 +158,14 @@ function CancelPanel({ order, reasons, onCancel, onBack, busy }) {
 function OrderDetails({ id, onChanged }) {
   const toast = useToast();
   const { data: order, loading, error, reload } = useApi(() => api.get(id), [id]);
-  const { data: agentList } = useApi(() => agentApi.list());
+  const { data: agentList, reload: reloadAgents } = useApi(() => agentApi.list());
+  // This order's next step (the rider accepting, picking up, delivering) and riders becoming free or busy show at once.
+  const { user } = useAuth();
+  const reloadAgentsSoon = useDebounced(reloadAgents);
+  useLive(m => {
+    if (m.type === 'resync' || (m.type === 'order' && m.id === id)) reload();
+    if (m.type === 'resync' || m.type === 'agent') reloadAgentsSoon();
+  }, user?._id);
   const { data: settings } = useApi(() => settingsApi.get());
   const [busy, setBusy] = useState(false);
   const [cancelling, setCancelling] = useState(false);
@@ -274,6 +283,13 @@ function OrderDetails({ id, onChanged }) {
             ) : (
               <p>{order.agentName ? <strong>{order.agentName}</strong> : <span className="muted">No agent</span>}</p>
             )}
+            {riderStage(order)?.step > 0 && (
+              <ol className="rider-steps" aria-label={riderStage(order).label}>
+                <li className={riderStage(order).step > 1 ? 'is-done' : 'is-now'}><span>1</span>Pick up from kitchen</li>
+                <li className={riderStage(order).step === 2 ? 'is-now' : ''}><span>2</span>Deliver to customer</li>
+              </ol>
+            )}
+            {riderStage(order) && <p className="muted">{riderStage(order).label}</p>}
             {order.status === 'delivered' && order.deliveryMins && <p className="muted">Delivered in {order.deliveryMins} min{order.rating ? ` · rated ${order.rating}★` : ''}</p>}
           </section>
           <section>
@@ -330,6 +346,10 @@ export default function Orders() {
     const timer = setInterval(reload, AUTO_REFRESH_MS);
     return () => clearInterval(timer);
   }, [reload]);
+  // New orders and every step of every order (the kitchen here, the rider app, the website) show at once.
+  const { user } = useAuth();
+  const reloadSoon = useDebounced(reload);
+  useLive(m => { if (m.type !== 'agent') reloadSoon(); }, user?._id);
   useEffect(() => setPage(1), [days, status, query]);
 
   const all = data || [];
@@ -427,7 +447,10 @@ export default function Orders() {
                             {o.couponCode ? ` · ${o.couponCode}` : ''}
                           </div>
                         </td>
-                        <td className="nowrap">{o.agentName || <span className="muted">Not assigned</span>}</td>
+                        <td className="nowrap">
+                          {o.agentName || <span className="muted">Not assigned</span>}
+                          {o.agentName && riderStage(o) && <div className="cell-sub">{riderStage(o).label}</div>}
+                        </td>
                         <td className="nowrap">
                           <Badge tone={st.tone}>{st.label}</Badge>
                           {o.refund && <div className="cell-sub">Refunded to {o.refund.to === 'wallet' ? 'wallet' : 'source'}</div>}
