@@ -5,6 +5,7 @@ import { money, num, timeAgo, dateTime, addressLine, addressShort, hasPin, mapsU
 import { ORDER_STATUS, AGENT_STATUS, riderStage } from '../lib/status.js';
 import { useToast } from '../components/Toast.jsx';
 import { PageHeader, Badge, Segmented, SearchInput, Modal, Loading, ErrorState, EmptyState, StatTile, Pagination, Field } from '../components/ui.jsx';
+import RefundForm from '../components/RefundForm.jsx';
 import { Bag, Flame, Clock, Check, XCircle, Refresh, Ticket, Wallet, MapPin, Copy, Pencil } from '../components/Icons.jsx';
 import { useAuth } from '../auth.jsx';
 import { useLive, useDebounced } from '../lib/live.js';
@@ -169,6 +170,7 @@ function OrderDetails({ id, onChanged }) {
   const { data: settings } = useApi(() => settingsApi.get());
   const [busy, setBusy] = useState(false);
   const [cancelling, setCancelling] = useState(false);
+  const [refunding, setRefunding] = useState(null); // what was paid how, while the Refund form is open
   const [agentId, setAgentId] = useState('');
 
   const currentAgent = order?.agentId || '';
@@ -189,6 +191,7 @@ function OrderDetails({ id, onChanged }) {
       await reload();
       onChanged();
       setCancelling(false);
+      setRefunding(null);
     } catch (err) {
       toast(err.message, 'critical');
     } finally {
@@ -310,11 +313,20 @@ function OrderDetails({ id, onChanged }) {
             <ul className="activity">
               {order.history.map((h, i) => (
                 <li key={i}>
-                  <span>{h.status === 'assigned' ? `Assigned to ${h.note}` : h.status === 'cancelled' ? `Cancelled: ${h.note}` : `Marked ${ORDER_STATUS[h.status]?.label.toLowerCase()}`}</span>
+                  <span>{h.status === 'assigned' ? `Assigned to ${h.note}` : h.status === 'cancelled' ? `Cancelled: ${h.note}` : h.status === 'refunded' ? `Refunded ${h.note}` : `Marked ${ORDER_STATUS[h.status]?.label.toLowerCase()}`}</span>
                   <span className="muted">{h.by} · {timeAgo(h.at)}</span>
                 </li>
               ))}
             </ul>
+          </section>
+        )}
+
+        {refunding && (
+          <section className="cancel-panel">
+            <h3>Refund order {order.orderNo}</h3>
+            <RefundForm paid={refunding} noteLabel="Reason" noteHint="Shown in the order’s history and the customer’s email, e.g. “Cold food, complaint by phone”." noteRequired
+              busy={busy} submitLabel="Refund" onCancel={() => setRefunding(null)}
+              onSubmit={({ amount, to, note }) => run(() => api.refund(order._id, { amount, to, reason: note }), `Order ${order.orderNo} refunded`)} />
           </section>
         )}
 
@@ -323,6 +335,18 @@ function OrderDetails({ id, onChanged }) {
             onCancel={(reason, refundTo) => run(() => api.cancel(order._id, { reason, refundTo }), `Order ${order.orderNo} cancelled`)} />
         )}
       </div>
+
+      {/* A delivered or cancelled order that was paid for and not refunded yet: refund it (e.g. a complaint). */}
+      {!live && !order.refund && !refunding && (
+        <div className="modal__foot">
+          <button type="button" className="btn btn--ghost" disabled={busy} onClick={async () => {
+            try {
+              const r = await api.refundable(order._id);
+              if (r.blocked) toast(r.blocked, 'critical'); else setRefunding(r.paid);
+            } catch (err) { toast(err.message, 'critical'); }
+          }}>Refund</button>
+        </div>
+      )}
 
       {live && !cancelling && (
         <div className="modal__foot modal__foot--split">

@@ -91,6 +91,16 @@ export const orders = {
   advance: id => post(`/orders/${id}/advance`),
   assign: (id, agentId) => post(`/orders/${id}/assign`, { agentId }),
   cancel: (id, { reason, refundTo }) => post(`/orders/${id}/cancel`, { reason, refundTo }),
+  // A delivered or cancelled order: what was paid how, and a refund { amount, to, reason }.
+  refundable: id => get(`/orders/${id}/refundable`),
+  refund: (id, { amount, to, reason }) => post(`/orders/${id}/refund`, { amount, to, reason }),
+};
+
+// Refund requests from the website's order page ("Request a refund"): approve with { amount, to, note } or reject.
+export const refundRequests = {
+  list: () => get('/refund-requests'),
+  approve: (id, { amount, to, note }) => post(`/refund-requests/${id}/approve`, { amount, to, note }),
+  reject: (id, note) => post(`/refund-requests/${id}/reject`, { note }),
 };
 
 export const wallets = {

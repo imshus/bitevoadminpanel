@@ -4,6 +4,7 @@ import { badRequest, notFound, nowIso, startOfToday, DAY } from '../lib/http.js'
 import { LIVE_STATUSES, NEXT_STATUS } from '../lib/rules.js';
 import { getSettings } from '../settings.js';
 import { razorpayEnabled, refundPayment } from '../lib/razorpay.js';
+import { refundOrder, paidFor, cantRefund } from '../lib/refunds.js';
 
 export const router = Router();
 
@@ -29,6 +30,29 @@ router.get('/', async (req, res) => {
   const days = Math.min(Math.max(Number(req.query.days) || 1, 1), 90);
   const since = new Date(startOfToday() - (days - 1) * DAY).toISOString();
   res.json(await store.find('orders', { placedAt: { $gte: since } }, { sort: { placedAt: -1 } }));
+});
+
+// A delivered or cancelled order refunded from its page: { amount, to: 'wallet' | 'source', reason }. It's recorded
+// as an approved refund request too, so it shows on the Refund requests page and the customer gets the email.
+router.post('/:id/refund', async (req, res) => {
+  const order = await findOrder(req.params.id);
+  const reason = String(req.body?.reason || '').trim().slice(0, 200);
+  if (reason.length < 3) throw badRequest('Give a reason for the refund.');
+  const saved = await refundOrder(order, { amount: req.body?.amount, to: req.body?.to, reason, admin: req.admin });
+  const at = nowIso();
+  await store.insert('refundRequests', {
+    orderId: order._id, orderNo: order.orderNo, customerId: order.customerId, customerName: order.customerName, customerPhone: order.customerPhone,
+    reason: 'admin', reasonLabel: 'Refunded by the kitchen', details: reason, amount: saved.refund.amount, to: saved.refund.to,
+    status: 'approved', createdAt: at, createdBy: req.admin.name, decidedAt: at, decidedBy: req.admin.name, note: reason,
+    decision: { amount: saved.refund.amount, to: saved.refund.to, razorpayRefundId: saved.refund.razorpayRefundId || null, wallet: saved.refund.wallet || 0 },
+  });
+  res.json(saved);
+});
+
+// What can still be refunded on this order (for the order page's Refund form).
+router.get('/:id/refundable', async (req, res) => {
+  const order = await findOrder(req.params.id);
+  res.json({ paid: paidFor(order), blocked: cantRefund(order) });
 });
 
 router.get('/:id', async (req, res) => {

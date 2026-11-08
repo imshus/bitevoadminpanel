@@ -21,12 +21,12 @@ export async function refundPayment(paymentId, rupees, notes = {}) {
     data = await res.json().catch(() => null);
   } catch (err) {
     console.error(`[razorpay] refund of ${paymentId} failed: ${err.message}`);
-    throw new HttpError(502, 'Couldn’t reach Razorpay to refund the payment. The order was not cancelled; try again, or refund to the BiteVo wallet.');
+    throw new HttpError(502, 'Couldn’t reach Razorpay to refund the payment. Nothing was changed; try again, or refund to the BiteVo wallet.');
   }
   if (!res.ok) {
     const why = data?.error?.description || `HTTP ${res.status}`;
     console.error(`[razorpay] refund of ${paymentId}: ${why}`);
-    throw new HttpError(502, `Razorpay didn’t accept the refund (${why}). The order was not cancelled; refund to the BiteVo wallet instead, or check the payment in the Razorpay dashboard.`);
+    throw new HttpError(502, `Razorpay didn’t accept the refund (${why}). Nothing was changed; refund to the BiteVo wallet instead, or check the payment in the Razorpay dashboard.`);
   }
   return data;
 }

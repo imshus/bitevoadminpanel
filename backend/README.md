@@ -76,6 +76,16 @@ Everything is under `/api` and needs a signed-in admin, except `/api/auth/login`
 **Settings:** delivery zones, vehicle types, cancel reasons and wallet adjustment reasons live in the `settings`
 collection (document `app`); agent and order checks use them.
 
+**Refund requests** (`src/routes/refundRequests.js`, page *Refund requests*): customers ask for a refund on the
+website's order page (a complaint about the food, missing or wrong items…), choosing UPI / card or the BiteVo
+wallet. Nothing is refunded until an admin approves a request here, setting the amount and where it goes; or
+rejects it with a note the customer sees. A delivered or cancelled order can also be refunded from its page
+(*Refund*, with a reason), which shows on the Refund requests page as approved. All of these go through
+`src/lib/refunds.js`: one refund per order; the part paid online goes back through Razorpay when sent to the source,
+the rest (wallet, cash) to the BiteVo wallet. The website emails the customer the outcome.
+
+| Refund requests | `GET /refund-requests`, `POST /refund-requests/:id/approve` `{ amount, to, note }`, `/reject` `{ note }`; `POST /orders/:id/refund` `{ amount, to, reason }`, `GET /orders/:id/refundable` |
+
 **Refunds to UPI / card:** cancelling an order the customer paid online (website or app, through Razorpay) with
 "Refund to UPI/Card" sends the online part back through Razorpay first (`src/lib/razorpay.js`; 5–7 working days for
 the customer) and anything paid from the wallet back to the wallet. It needs the Razorpay keys in `.env`:
