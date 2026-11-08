@@ -68,5 +68,11 @@ export const config = {
     sameSite: process.env.COOKIE_SAMESITE || 'lax', // use "none" (with COOKIE_SECURE=true) when the panel is on another domain
   },
   sessionDays: Number(process.env.SESSION_DAYS) || 7,
+  // Razorpay, for refunding online payments when an order is cancelled (lib/razorpay.js). The same keys as the
+  // website API's; either name works.
+  razorpay: {
+    keyId: (process.env.RAZORPAY_KEY_ID || process.env.ROZERPAY_API || '').trim(),
+    keySecret: (process.env.RAZORPAY_KEY_SECRET || process.env.ROZERPAY_SECRET || '').trim(),
+  },
   trustProxy: process.env.TRUST_PROXY === 'true',
 };

@@ -216,7 +216,13 @@ function OrderDetails({ id, onChanged }) {
             <h3>Payment</h3>
             <p><strong>{order.paymentMethod}</strong></p>
             {order.walletUsed > 0 && order.paymentMethod !== 'Wallet' && <p className="muted">{money(order.walletUsed)} paid from wallet</p>}
-            {order.refund && <p className="muted">Refunded {money(order.refund.amount)} to {order.refund.to === 'wallet' ? 'BiteVo wallet' : 'original payment'}</p>}
+            {order.refund && (
+              <p className="muted">
+                Refunded {money(order.refund.amount)} to {order.refund.to === 'wallet' ? 'BiteVo wallet' : 'original payment'}
+                {order.refund.razorpayRefundId ? ` (Razorpay ${order.refund.razorpayRefundId}${order.refund.refundStatus === 'processed' ? ', done' : order.refund.refundStatus === 'failed' ? ', FAILED: check Razorpay' : ''})` : ''}
+                {order.refund.wallet ? `, of which ${money(order.refund.wallet)} to the BiteVo wallet` : ''}
+              </p>
+            )}
           </section>
         </div>
 

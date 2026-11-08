@@ -76,6 +76,13 @@ Everything is under `/api` and needs a signed-in admin, except `/api/auth/login`
 **Settings:** delivery zones, vehicle types, cancel reasons and wallet adjustment reasons live in the `settings`
 collection (document `app`); agent and order checks use them.
 
+**Refunds to UPI / card:** cancelling an order the customer paid online (website or app, through Razorpay) with
+"Refund to UPI/Card" sends the online part back through Razorpay first (`src/lib/razorpay.js`; 5–7 working days for
+the customer) and anything paid from the wallet back to the wallet. It needs the Razorpay keys in `.env`:
+`RAZORPAY_KEY_ID` / `RAZORPAY_KEY_SECRET`, or `ROZERPAY_API` / `ROZERPAY_SECRET` (the website API's keys). Without
+them, or if Razorpay refuses, the order is not cancelled and the panel says why; refund to the wallet instead. The
+order shows the Razorpay refund ID, and "done" once Razorpay confirms it (the website API's Razorpay webhook).
+
 **Photos** are uploaded with `POST /api/uploads` (signed-in admin; the image file as the raw body with
 `Content-Type: image/jpeg`, `image/png`, `image/webp` or `image/gif`; at most 5 MB). The answer is
 `201 { "url": "https://<project>.supabase.co/storage/v1/object/public/bitevo-images/<id>.jpg" }`. Save that link
