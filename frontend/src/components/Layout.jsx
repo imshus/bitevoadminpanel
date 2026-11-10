@@ -2,6 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../auth.jsx';
 import { Avatar, Logo } from './ui.jsx';
+import OrderBell from './OrderBell.jsx';
 import { Dashboard, Box, Ticket, Bike, LogIn, LogOut, Chart, Menu, X, Sun, Moon, ChevronDown, Bag, Wallet, UserPlus, MapPin, Rupee } from './Icons.jsx';
 
 const NAV = [
@@ -145,6 +146,7 @@ export default function Layout() {
           <Logo className="topbar__logo" />
           <span className="topbar__date">{today}</span>
           <div className="topbar__right">
+            <OrderBell />
             <button className="icon-btn" onClick={toggleTheme} aria-label={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'} title={theme === 'dark' ? 'Light theme' : 'Dark theme'}>
               {theme === 'dark' ? <Sun /> : <Moon />}
             </button>

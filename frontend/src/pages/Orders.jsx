@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { orders as api, agents as agentApi, settings as settingsApi } from '../api/index.js';
 import { useApi, usePageTitle } from '../lib/useApi.js';
 import { money, num, timeAgo, dateTime, addressLine, addressShort, hasPin, mapsUrl } from '../lib/format.js';
@@ -375,6 +375,15 @@ export default function Orders() {
   const [openId, setOpenId] = useState(null);
   const [advancing, setAdvancing] = useState(null);
   const { data, loading, refreshing, error, reload } = useApi(() => api.list({ days }), [days]);
+
+  // /orders?order=<id> (the new-order bell, desktop notifications) opens that order.
+  const [params, setParams] = useSearchParams();
+  const linked = params.get('order');
+  useEffect(() => {
+    if (!linked) return;
+    setOpenId(linked);
+    setParams({}, { replace: true });
+  }, [linked]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     const timer = setInterval(reload, AUTO_REFRESH_MS);
