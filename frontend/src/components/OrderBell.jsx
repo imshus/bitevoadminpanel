@@ -11,7 +11,7 @@ import { useLive, useDebounced } from '../lib/live.js';
 import { money, timeAgo } from '../lib/format.js';
 import { ringBell, unlockSound, soundReady, loadPrefs, savePrefs } from '../lib/orderAlerts.js';
 import { useToast } from './Toast.jsx';
-import { Switch } from './ui.jsx';
+import { Switch, Segmented } from './ui.jsx';
 import { Bell, BellOff } from './Icons.jsx';
 
 const CHECK_MS = { up: 60000, down: 15000 }; // re-read the list: while the live socket is up / down
@@ -53,7 +53,7 @@ export default function OrderBell() {
     const title = fresh.length > 1 ? `${fresh.length} new orders` : `New order ${first.orderNo}`;
     const detail = fresh.length > 1 ? fresh.map(o => o.orderNo).join(', ') : `${firstName(first.customerName)} · ${itemCount(first)} item${itemCount(first) > 1 ? 's' : ''} · ${money(first.total)}`;
     say(`${title} · ${detail}`);
-    if (p.sound) ringBell({ times: 4 });
+    if (p.sound) ringBell('new', p.style);
     if (document.hidden) {
       if (!document.title.startsWith('🔔')) document.title = `🔔 ${title} · ${document.title}`;
       if (p.desktop && canNotify() && Notification.permission === 'granted') {
@@ -98,9 +98,9 @@ export default function OrderBell() {
   const anyWaiting = waiting.length > 0;
   useEffect(() => {
     if (!anyWaiting || !prefs.sound || !prefs.remind) return undefined;
-    const timer = setInterval(() => ringBell({ times: 2 }), REMIND_MS);
+    const timer = setInterval(() => ringBell('remind', prefs.style), REMIND_MS);
     return () => clearInterval(timer);
-  }, [anyWaiting, prefs.sound, prefs.remind]);
+  }, [anyWaiting, prefs.sound, prefs.remind, prefs.style]);
 
   // Browsers allow sound only after a click or key press on the page: the first one unlocks the bell.
   useEffect(() => {
@@ -177,6 +177,10 @@ export default function OrderBell() {
           {count > SHOWN && <button type="button" className="bell__all" onClick={() => { setOpen(false); navigate('/orders'); }}>See all {count} on the Orders page</button>}
           <div className="bell__prefs">
             <Switch checked={prefs.sound} onChange={v => setPref({ sound: v })} label="Ring for new orders" hideLabel={false} />
+            {prefs.sound && (
+              <Segmented label="Sound" value={prefs.style} onChange={style => { setPref({ style }); unlockSound(); setReady(true); ringBell('test', style); }}
+                options={[{ value: 'loud', label: 'Loud ring' }, { value: 'soft', label: 'Soft bell' }]} />
+            )}
             <Switch checked={prefs.sound && prefs.remind} onChange={v => setPref({ remind: v })} label="Ring again every 30 s until accepted" hideLabel={false} disabled={!prefs.sound} />
             {canNotify() && (
               <Switch checked={prefs.desktop && Notification.permission === 'granted'} onChange={toggleDesktop} label="Desktop notification when this tab is in the background" hideLabel={false} />
@@ -184,7 +188,7 @@ export default function OrderBell() {
           </div>
           <div className="bell__foot">
             {prefs.sound && !ready && <span className="bell__hint">Click anywhere on the page once so the browser lets the bell ring.</span>}
-            <button type="button" className="btn btn--ghost btn--sm" onClick={() => { unlockSound(); setReady(true); ringBell({ times: 2 }); }}>Test bell</button>
+            <button type="button" className="btn btn--ghost btn--sm" onClick={() => { unlockSound(); setReady(true); ringBell('test', prefs.style); }}>Test bell</button>
           </div>
         </div>
       )}
