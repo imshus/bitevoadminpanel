@@ -79,7 +79,7 @@ function riderLine(o) {
 }
 
 const headline = o => (o.status === 'out_for_delivery'
-  ? (o.route ? `Arriving in ${etaMins(o.route.durationS)} min` : 'On the way')
+  ? (o.route ? `Arriving in ${o.drop?.approx ? 'about ' : ''}${etaMins(o.route.durationS)} min` : 'On the way')
   : o.status === 'preparing' ? 'Being prepared' : 'New order');
 const dropTone = o => (!o.agentId ? 'waiting' : o.status === 'out_for_delivery' ? 'out' : 'assigned');
 
@@ -112,7 +112,7 @@ const riderIcon = () => L.divIcon({
 });
 const homeIcon = (o, selected) => L.divIcon({
   className: 'lm-icon',
-  html: `<div class="lm-home lm-home--${dropTone(o)}${selected ? ' is-selected' : ''}"><span class="lm-home__pin"><span>${HOME_SVG}</span></span><span class="lm-home__tag">${esc(shortNo(o.orderNo))}${o.customerName ? ` · ${esc(firstName(o.customerName))}` : ''}</span></div>`,
+  html: `<div class="lm-home lm-home--${dropTone(o)}${o.drop?.approx ? ' is-approx' : ''}${selected ? ' is-selected' : ''}"><span class="lm-home__pin"><span>${HOME_SVG}</span></span><span class="lm-home__tag">${esc(shortNo(o.orderNo))}${o.customerName ? ` · ${esc(firstName(o.customerName))}` : ''}${o.drop?.approx ? ' · approx.' : ''}</span></div>`,
   iconSize: [34, 42],
   iconAnchor: [17, 41],
 });
@@ -217,7 +217,7 @@ function FleetMap({ kitchen, riders, orders, selected, trail, fitKey, focus, onS
       if (!hasPoint(o.drop)) continue;
       homesSeen.add(o._id);
       const sel = selOrder?._id === o._id;
-      const key = `${dropTone(o)}|${sel}|${o.orderNo}|${o.customerName}`;
+      const key = `${dropTone(o)}|${sel}|${o.orderNo}|${o.customerName}|${o.drop.approx ? 1 : 0}`;
       const h = s.homes.get(o._id);
       if (!h) {
         const marker = L.marker(ll(o.drop), { icon: homeIcon(o, sel), keyboard: false, title: `${o.orderNo} · ${riderLine(o)}` })
@@ -348,7 +348,8 @@ function OrderCard({ order, rider, onPick, onClose }) {
         <Person avatar={<MapPin size={16} />} tone="home" name={order.customerName} phone={order.customerPhone}
           sub={order.address ? `${addressShort(order.address)}${order.address.landmark ? ` · near ${order.address.landmark}` : ''}` : 'No address on this order'} />
       </div>
-      {!hasPoint(order.drop) && <p className="lm-float__note">Typed without a map pin, so the home isn’t on the map.</p>}
+      {order.drop?.approx && <p className="lm-float__note">The customer typed this address without a map pin, so the home, route and arrival time are approximate (for its area).</p>}
+      {!hasPoint(order.drop) && <p className="lm-float__note">Typed without a map pin and the area couldn’t be found, so the home isn’t on the map.</p>}
       {order.status === 'out_for_delivery' && order.riderLocation?.at && !isFresh(order.riderLocation) && (
         <p className="lm-float__note">No update from the rider’s phone for {timeAgo(order.riderLocation.at).replace(' ago', '')}.</p>
       )}
@@ -396,10 +397,12 @@ function RiderCard({ rider, orders, onPick, onClose }) {
 export default function LiveMap() {
   usePageTitle('Live map');
   const [params, setParams] = useSearchParams();
+  // /live?order=<id> or /live?rider=<id> (links from the Orders and Delivery agents pages) open with it picked.
   const startOrder = params.get('order');
+  const startRider = params.get('rider');
   const { data, loading, refreshing, error, reload } = useApi(() => api.get());
   const [tab, setTab] = useState(startOrder ? 'orders' : 'riders');
-  const [selected, setSelected] = useState(startOrder ? { kind: 'order', id: startOrder } : null);
+  const [selected, setSelected] = useState(startOrder ? { kind: 'order', id: startOrder } : startRider ? { kind: 'rider', id: startRider } : null);
   const [fitKey, setFitKey] = useState(0);
   const [focus, setFocus] = useState(null);
   const [trail, setTrail] = useState(null);
@@ -436,7 +439,7 @@ export default function LiveMap() {
     const next = { kind, id };
     setSelected(next);
     setTab(kind === 'rider' ? 'riders' : 'orders');
-    setParams(kind === 'order' ? { order: id } : {}, { replace: true });
+    setParams(kind === 'order' ? { order: id } : { rider: id }, { replace: true });
     const f = focusFor(next);
     if (move && f) setFocus({ ...f, key: Date.now() });
   };
@@ -473,6 +476,7 @@ export default function LiveMap() {
   const waiting = orders.filter(o => !o.agentId).length;
   const out = orders.filter(o => o.status === 'out_for_delivery').length;
   const unpinned = orders.filter(o => !hasPoint(o.drop)).length;
+  const approx = orders.filter(o => o.drop?.approx).length;
   const onMap = riders.some(r => r.status !== 'offline' && hasPoint(r.location)) || orders.some(o => hasPoint(o.drop));
 
   return (
@@ -508,7 +512,8 @@ export default function LiveMap() {
             <span><i className="lm-key lm-key--assigned" /> Rider assigned</span>
             <span><i className="lm-key lm-key--out" /> On the way</span>
             {!data.kitchen && <span className="muted">Set KITCHEN_LAT and KITCHEN_LNG in backend/.env to show the kitchen.</span>}
-            {unpinned > 0 && <span className="muted">{unpinned} order{unpinned > 1 ? 's have' : ' has'} no map pin, so {unpinned > 1 ? 'they’re' : 'it’s'} only in the list.</span>}
+            {approx > 0 && <span className="muted"><i className="lm-key lm-key--approx" /> {approx === 1 ? 'Home' : `${approx} homes`} from a typed address (no map pin): approximate.</span>}
+            {unpinned > 0 && <span className="muted">{unpinned} order{unpinned > 1 ? 's' : ''} without a location, so only in the list.</span>}
           </div>
         </section>
 

@@ -8,6 +8,7 @@ import { config } from '../config.js';
 import { notFound, DAY } from '../lib/http.js';
 import { LIVE_STATUSES } from '../lib/rules.js';
 import { orderRoute } from '../lib/routing.js';
+import { approxPoint } from '../lib/geocode.js';
 
 export const router = Router();
 
@@ -29,12 +30,20 @@ router.get('/', async (req, res) => {
   ]);
   const today = new Date(Date.now() + IST_MS).toISOString().slice(0, 10);
 
-  // On the way: the road route from the rider to the customer's pin, with distance and driving time.
+  // The customer's home: the map pin, or for an address typed without one, an approximate point for its area.
+  const drops = new Map(await Promise.all(orders.map(async o => {
+    const exact = dropPoint(o.address);
+    if (exact) return [o._id, exact];
+    const near = await approxPoint(o.address).catch(() => null);
+    return [o._id, near ? { ...near, approx: true } : null];
+  })));
+
+  // On the way: the road route from the rider to the customer's home, with distance and driving time.
   const agentsById = new Map(agents.map(a => [a._id, a]));
   const riderAt = o => point(o.riderLocation) || (agentsById.get(o.agentId)?.status !== 'offline' ? point(agentsById.get(o.agentId)?.location) : null);
   const routes = new Map(await Promise.all(orders
-    .filter(o => o.status === 'out_for_delivery' && riderAt(o) && dropPoint(o.address))
-    .map(async o => [o._id, await orderRoute(o._id, riderAt(o), dropPoint(o.address))])));
+    .filter(o => o.status === 'out_for_delivery' && riderAt(o) && drops.get(o._id))
+    .map(async o => [o._id, await orderRoute(o._id, riderAt(o), drops.get(o._id))])));
 
   res.json({
     kitchen: config.kitchen,
@@ -61,7 +70,7 @@ router.get('/', async (req, res) => {
       customerName: o.customerName,
       customerPhone: o.customerPhone,
       address: o.address ? { label: o.address.label || '', line1: o.address.line1 || '', line2: o.address.line2 || '', landmark: o.address.landmark || '', area: o.address.area || '' } : null,
-      drop: dropPoint(o.address),
+      drop: drops.get(o._id), // { lat, lng, approx? }: approx = from the typed address, not a pin
       agentId: o.agentId || null,
       agentName: o.agentName || null,
       // Set by the rider-assignment flow when it's in use ('requested' → 'accepted' / 'declined').

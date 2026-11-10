@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { orders as api, agents as agentApi, settings as settingsApi } from '../api/index.js';
 import { useApi, usePageTitle } from '../lib/useApi.js';
 import { money, num, timeAgo, dateTime, addressLine, addressShort, hasPin, mapsUrl } from '../lib/format.js';
@@ -299,6 +300,9 @@ function OrderDetails({ id, onChanged }) {
               </ol>
             )}
             {riderStage(order) && <p className="muted">{riderStage(order).label}</p>}
+            {live && order.agentId && (
+              <Link className="btn btn--ghost btn--sm" to={`/live?order=${order._id}`}><MapPin size={14} /> Track live on the map</Link>
+            )}
             {order.status === 'delivered' && order.deliveryMins && <p className="muted">Delivered in {order.deliveryMins} min{order.rating ? ` · rated ${order.rating}★` : ''}</p>}
           </section>
           <section>

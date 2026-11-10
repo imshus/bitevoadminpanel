@@ -1,9 +1,10 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { agents as api, settings as settingsApi } from '../api/index.js';
 import { useApi, usePatch, usePageTitle } from '../lib/useApi.js';
 import { useAuth } from '../auth.jsx';
 import { useLive, useDebounced } from '../lib/live.js';
-import { mins, pct, dateOnly } from '../lib/format.js';
+import { mins, pct, dateOnly, timeAgo } from '../lib/format.js';
 import { AGENT_STATUS, KYC_STATUS } from '../lib/status.js';
 import { useToast } from '../components/Toast.jsx';
 import { PageHeader, Badge, Switch, Field, Segmented, SearchInput, Modal, useConfirm, Loading, ErrorState, EmptyState, StatTile, Avatar } from '../components/ui.jsx';
@@ -208,7 +209,17 @@ export default function Agents() {
                         <div>{a.vehicleType}</div>
                         {a.vehicleNumber && <div className="cell-sub mono">{a.vehicleNumber}</div>}
                       </td>
-                      <td><Badge tone={st.tone}>{st.label}</Badge></td>
+                      <td>
+                        <Badge tone={st.tone}>{st.label}</Badge>
+                        {/* The delivery app's live location: track an online rider on the Live map. */}
+                        {a.isActive && a.location?.at && (
+                          <div className="cell-sub nowrap">
+                            {a.status !== 'offline'
+                              ? <>Location {timeAgo(a.location.at)} · <Link className="track-link" to={`/live?rider=${a._id}`}>Track live</Link></>
+                              : `Last seen ${timeAgo(a.location.at)}`}
+                          </div>
+                        )}
+                      </td>
                       <td>
                         {a.kycStatus === 'pending' ? (
                           <div className="kyc-actions">
