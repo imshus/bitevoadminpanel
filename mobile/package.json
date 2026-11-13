@@ -1,0 +1,10 @@
+{
+  "name": "bitevo-admin-android",
+  "version": "1.0.0",
+  "private": true,
+  "description": "BiteVo Admin for Android: the admin panel in a WebView, with a background service that rings and notifies for new orders while the app is closed or the screen is off.",
+  "scripts": {
+    "build:android": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-android.ps1",
+    "test:android": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-android.ps1 -Test"
+  }
+}

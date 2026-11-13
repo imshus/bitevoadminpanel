@@ -83,6 +83,25 @@ router.get('/', async (req, res) => {
   });
 });
 
+// The orders waiting to be accepted (status 'placed'), newest first, in a few fields: what the Android app's
+// background bell (mobile/, OrderWatchService) checks every few seconds while the app isn't on screen, so it's kept
+// small. Older than a day: left out, as on the Live map.
+router.get('/waiting', async (req, res) => {
+  const since = new Date(Date.now() - LIVE_FOR_MS).toISOString();
+  const orders = await store.find('orders', { status: 'placed', placedAt: { $gte: since } }, { sort: { placedAt: -1 }, limit: MAX_ORDERS });
+  res.json({
+    orders: orders.map(o => ({
+      _id: o._id,
+      orderNo: o.orderNo,
+      customerName: o.customerName || '',
+      items: (o.items || []).reduce((n, it) => n + (Number(it.qty) || 1), 0),
+      total: o.total ?? 0,
+      placedAt: o.placedAt,
+    })),
+    at: new Date().toISOString(),
+  });
+});
+
 // The route driven so far for one order, thinned to at most MAX_TRACK_POINTS points: [[lat, lng], …].
 router.get('/orders/:id/track', async (req, res) => {
   const order = await store.findById('orders', req.params.id);

@@ -1,0 +1,11 @@
+// The Android Gradle Plugin (with its built-in Kotlin) at the version the customer and rider apps use, so
+// Gradle's cache on this PC already has it.
+buildscript {
+    repositories {
+        google()
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:9.2.1'
+    }
+}

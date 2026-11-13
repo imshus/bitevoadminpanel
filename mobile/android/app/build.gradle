@@ -1,0 +1,83 @@
+plugins {
+    id 'com.android.application'
+}
+
+// The admin panel the app opens. The live panel is the default (https://admin.bitevo.in, where the panel's
+// screens are hosted and /api is passed on to the admin API), so its screens are always the current ones and
+// panel changes need no new APK. A test build opens the dev server instead:
+//   gradlew assembleRelease -PappUrl=http://10.0.2.2:2001      the Android emulator (10.0.2.2 is this PC)
+//   gradlew assembleRelease -PappUrl=http://192.168.1.20:2001  a phone on the same Wi-Fi
+// The background bell (OrderWatchService) asks the same address for the orders waiting (/api/live/waiting).
+def appUrl = (findProperty('appUrl') ?: 'https://admin.bitevo.in').toString().trim().replaceAll('/+$', '')
+
+// Play Store builds (-Pplay=true, the .aab) are signed with BiteVo's own upload key; Google Play refuses the
+// public debug key. The key and its passwords stay outside the repo, in ~/.bitevo/admin-upload.properties
+// (storeFile, storePassword, keyAlias, keyPassword). BITEVO_ADMIN_UPLOAD_PROPERTIES points somewhere else.
+def forPlay = (findProperty('play') ?: 'false').toString().toBoolean()
+def uploadPropsFile = file(System.getenv('BITEVO_ADMIN_UPLOAD_PROPERTIES') ?: "${System.getProperty('user.home')}/.bitevo/admin-upload.properties")
+def uploadProps = new Properties()
+if (uploadPropsFile.exists()) uploadPropsFile.withInputStream { uploadProps.load(it) }
+if (forPlay && !uploadPropsFile.exists()) {
+    throw new GradleException("No upload key at ${uploadPropsFile}: make one with keytool (see mobile/README.md) and back it up.")
+}
+
+android {
+    namespace = 'com.bitevo.admin' // the code's package ("in" is a reserved word in Kotlin); the app ID is in.bitevo.admin
+    compileSdk = 37
+    buildToolsVersion = '37.0.0'
+
+    defaultConfig {
+        applicationId = 'in.bitevo.admin'
+        minSdk = 24
+        targetSdk = 36
+        versionCode = 1
+        versionName = '1.0'
+        buildConfigField 'String', 'APP_URL', "\"${appUrl}\""
+        // Plain http is allowed only when the app was built for an http address (the dev server).
+        manifestPlaceholders = [usesCleartextTraffic: String.valueOf(appUrl.startsWith('http:'))]
+    }
+    buildFeatures {
+        buildConfig = true
+    }
+    signingConfigs {
+        // React Native's public debug key, as in the customer and rider apps: fine for installing the APK directly.
+        debug {
+            storeFile = file('debug.keystore')
+            storePassword = 'android'
+            keyAlias = 'androiddebugkey'
+            keyPassword = 'android'
+        }
+        if (forPlay) {
+            upload {
+                storeFile = file(uploadProps.getProperty('storeFile'))
+                storePassword = uploadProps.getProperty('storePassword')
+                keyAlias = uploadProps.getProperty('keyAlias')
+                keyPassword = uploadProps.getProperty('keyPassword')
+            }
+        }
+    }
+    buildTypes {
+        release {
+            signingConfig = forPlay ? signingConfigs.upload : signingConfigs.debug
+        }
+    }
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+    testOptions {
+        unitTests.all {
+            // WaitingOrdersTest also checks a running API when given one: gradlew test -PtestApi=http://127.0.0.1:4100
+            // (with -PtestEmail / -PtestPassword for a test admin on it).
+            systemProperty 'bitevo.testApi', (findProperty('testApi') ?: '').toString()
+            systemProperty 'bitevo.testEmail', (findProperty('testEmail') ?: '').toString()
+            systemProperty 'bitevo.testPassword', (findProperty('testPassword') ?: '').toString()
+            testLogging { events 'passed', 'skipped', 'failed'; showStandardStreams = true; exceptionFormat = 'full' }
+        }
+    }
+}
+
+dependencies {
+    testImplementation 'junit:junit:4.13.2'
+    testImplementation 'org.json:json:20180813' // Android's own org.json is only a stub in JVM tests
+}

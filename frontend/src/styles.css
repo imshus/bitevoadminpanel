@@ -230,6 +230,7 @@ em { font-family: var(--serif); font-style: italic; font-weight: 700; color: var
 .bell__prefs .switch__label { font-size: 13px; }
 .bell__foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; padding: 6px 8px 4px; }
 .bell__hint { font-size: 12px; color: var(--critical-text); }
+.bell__note { margin: 0; font-size: 12px; line-height: 1.4; color: var(--muted); }
 @keyframes bell-shake {
   0%, 62%, 100% { transform: rotate(0); }
   66% { transform: rotate(14deg); } 70% { transform: rotate(-12deg); } 74% { transform: rotate(9deg); }

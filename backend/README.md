@@ -65,6 +65,7 @@ Everything is under `/api` and needs a signed-in admin, except `/api/auth/login`
 | Menu | `GET/POST /products`, `PATCH/DELETE /products/:id`, `GET/POST /categories`, `POST /uploads` (raw image body) |
 | Offers | `GET/POST /coupons`, `PATCH/DELETE /coupons/:id` |
 | Orders | `GET /orders?days=1`, `GET /orders/:id`, `POST /orders/:id/advance`, `/assign`, `/cancel` |
+| Live map | `GET /live` (riders and live orders), `GET /live/orders/:id/track`, `GET /live/waiting` (orders waiting to be accepted, a few fields: what the Android app's background bell checks, `../mobile`) |
 | Wallets | `GET /wallets`, `POST /wallets/:customerId/adjustments`, `GET /customers?search=` |
 | Team | `GET/POST /agents`, `PATCH/DELETE /agents/:id` |
 | Rider applications | `GET /rider-applications`, `POST /rider-applications/:id/contacted`, `/approve` (adds the applicant as an agent, ID check pending), `/reject` |

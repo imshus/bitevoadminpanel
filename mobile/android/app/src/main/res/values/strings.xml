@@ -1,0 +1,34 @@
+<resources>
+    <string name="app_name">BiteVo Admin</string>
+
+    <string name="channel_orders">New orders</string>
+    <string name="channel_orders_about">Each new order while the app is closed. The bell itself rings on the alarm volume; turn it off or change its sound with the bell in the panel’s top bar.</string>
+    <string name="channel_watch">Watching for new orders</string>
+    <string name="channel_watch_about">Shown while BiteVo Admin checks for new orders in the background</string>
+    <string name="channel_alerts">Signed out</string>
+    <string name="channel_alerts_about">When the bell stops because you’re signed out of the panel</string>
+
+    <string name="order_title">New order %s</string>
+    <string name="watch_title">Watching for new orders</string>
+    <string name="watch_text">The bell rings here when an order comes in, also with the app closed.</string>
+    <plurals name="watch_waiting">
+        <item quantity="one">%d order waiting to be accepted</item>
+        <item quantity="other">%d orders waiting to be accepted</item>
+    </plurals>
+    <string name="watch_offline">No connection · trying again. New orders ring once it’s back.</string>
+    <string name="watch_stop">Stop until I open the app</string>
+    <string name="signed_out_title">Signed out of BiteVo Admin</string>
+    <string name="signed_out_text">New orders won’t ring until you sign in again. Tap to open the app.</string>
+
+    <string name="ask_battery_title">Keep the bell ringing</string>
+    <string name="ask_battery_text">Some phones stop apps in the background to save battery, so new orders wouldn’t ring with the screen off. On the next screen, allow BiteVo Admin to run in the background.</string>
+    <string name="continue_">Continue</string>
+    <string name="not_now">Not now</string>
+
+    <string name="error_title">Can’t reach BiteVo</string>
+    <string name="error_text">Check your internet connection and try again.</string>
+    <string name="try_again">Try again</string>
+    <string name="server_address">Test build: the panel’s address</string>
+    <string name="server_address_use">Use this address</string>
+    <string name="server_address_wrong">Type an address like http://192.168.1.20:2001</string>
+</resources>

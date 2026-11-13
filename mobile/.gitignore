@@ -1,0 +1,16 @@
+# Gradle and Android Studio
+android/.gradle/
+android/build/
+android/app/build/
+android/.kotlin/
+android/local.properties
+.idea/
+*.iml
+
+# The APK and bundle copied out by scripts/build-android.ps1
+/BiteVoAdmin.apk
+/BiteVoAdmin.aab
+# Signing keys never go in the repo (the upload key lives in ~/.bitevo)
+*.jks
+*.keystore
+!android/app/debug.keystore

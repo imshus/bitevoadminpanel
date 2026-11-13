@@ -3,6 +3,9 @@
 // page. New orders arrive over the live socket (lib/live.js) the moment they're placed; the list is also re-read on
 // a timer in case the socket is down. While orders wait, it rings again every 30 seconds (can be turned off), and a
 // desktop notification can be turned on for when the panel is in a background tab.
+// In the Android app (mobile/, `window.BiteVoAdmin`) the page sleeps while the app is closed, so the app rings and
+// shows new orders in the notification bar itself: the bell hands it these settings, and doesn't ring again for an
+// order the app already rang for.
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { orders as api } from '../api/index.js';
@@ -20,7 +23,10 @@ const SHOWN = 8;
 
 const firstName = name => String(name || '').trim().split(/\s+/)[0] || 'Customer';
 const itemCount = o => (o.items || []).reduce((s, it) => s + (it.qty || 1), 0);
-const canNotify = () => typeof window !== 'undefined' && 'Notification' in window;
+const app = () => (typeof window !== 'undefined' ? window.BiteVoAdmin : undefined); // the Android app, if in it
+const canNotify = () => typeof window !== 'undefined' && !app() && 'Notification' in window;
+// Whether the app already rang for this order while it was closed.
+const appRang = id => { try { return Boolean(app()?.announced?.(id)); } catch { return false; } };
 
 export default function OrderBell() {
   const { user } = useAuth();
@@ -47,7 +53,9 @@ export default function OrderBell() {
   };
 
   // A new order: ring, say so, and if the tab is in the background, a desktop notification and the tab title.
-  const announce = fresh => {
+  const announce = all => {
+    const fresh = all.filter(o => !appRang(o._id));
+    if (!fresh.length) return; // the app rang for them and showed them while it was closed
     const { prefs: p, toast: say, navigate: go } = latest.current;
     const first = fresh[0];
     const title = fresh.length > 1 ? `${fresh.length} new orders` : `New order ${first.orderNo}`;
@@ -101,6 +109,19 @@ export default function OrderBell() {
     const timer = setInterval(() => ringBell('remind', prefs.style), REMIND_MS);
     return () => clearInterval(timer);
   }, [anyWaiting, prefs.sound, prefs.remind, prefs.style]);
+
+  // In the app: it rings with these settings while it's closed (and starts watching: someone is signed in). The app
+  // also lets the page play sound without a tap first.
+  useEffect(() => {
+    if (!app()) return;
+    try {
+      app().bell(JSON.stringify({ sound: prefs.sound, style: prefs.style, remind: prefs.remind }));
+    } catch {
+      // an older app without the bell: it just won't ring while closed
+    }
+    unlockSound();
+    setReady(true);
+  }, [prefs.sound, prefs.style, prefs.remind]);
 
   // Browsers allow sound only after a click or key press on the page: the first one unlocks the bell.
   useEffect(() => {
@@ -185,6 +206,7 @@ export default function OrderBell() {
             {canNotify() && (
               <Switch checked={prefs.desktop && Notification.permission === 'granted'} onChange={toggleDesktop} label="Desktop notification when this tab is in the background" hideLabel={false} />
             )}
+            {app() && <p className="bell__note">With the app closed or the screen off, new orders still ring and show in the phone’s notification bar.</p>}
           </div>
           <div className="bell__foot">
             {prefs.sound && !ready && <span className="bell__hint">Click anywhere on the page once so the browser lets the bell ring.</span>}
