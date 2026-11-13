@@ -1,4 +1,5 @@
-// Refund requests from customers on the website (an order's "Request a refund", e.g. a complaint about the food).
+// Refund requests from customers on the website and app (an order's "Request a refund", e.g. a complaint about the
+// food), and the ones the website makes when a customer cancels a paid order (reason 'cancelled').
 // The website only records them; nothing is refunded until an admin approves one here, choosing the amount and
 // where it goes (BiteVo wallet, or back to the customer's UPI / card for orders paid online). Rejecting needs a
 // note, which the customer sees. Refunds go through lib/refunds.js; the website emails the customer the outcome.

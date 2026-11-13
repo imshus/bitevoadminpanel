@@ -103,6 +103,13 @@ export const refundRequests = {
   reject: (id, note) => post(`/refund-requests/${id}/reject`, { note }),
 };
 
+// Online payments whose order wasn't placed: refund with { to: 'source' | 'wallet', note }, or mark refunded elsewhere.
+export const heldPayments = {
+  list: () => get('/payments/held'),
+  refund: (id, { to, note }) => post(`/payments/${encodeURIComponent(id)}/refund`, { to, note }),
+  markRefunded: (id, note) => post(`/payments/${encodeURIComponent(id)}/mark-refunded`, { note }),
+};
+
 export const wallets = {
   overview: () => get('/wallets'),
   adjust: ({ customer, amount, note }) => post(`/wallets/${customer.customerId}/adjustments`, { amount, note }),
