@@ -9,6 +9,7 @@ const NAV = [
   { to: '/', label: 'Dashboard', icon: Dashboard, end: true },
   { to: '/orders', label: 'Orders', icon: Bag },
   { to: '/refund-requests', label: 'Refund requests', icon: Rupee },
+  { to: '/payments-without-order', label: 'No-order payments', icon: Wallet },
   { to: '/live', label: 'Live map', icon: MapPin },
   { to: '/products', label: 'Products', icon: Box },
   { to: '/coupons', label: 'Coupons', icon: Ticket },

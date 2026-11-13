@@ -76,15 +76,25 @@ Everything is under `/api` and needs a signed-in admin, except `/api/auth/login`
 **Settings:** delivery zones, vehicle types, cancel reasons and wallet adjustment reasons live in the `settings`
 collection (document `app`); agent and order checks use them.
 
+Only the admin panel makes refunds: the website API and the app never send money back by themselves.
+
 **Refund requests** (`src/routes/refundRequests.js`, page *Refund requests*): customers ask for a refund on the
-website's order page (a complaint about the food, missing or wrong items…), choosing UPI / card or the BiteVo
-wallet. Nothing is refunded until an admin approves a request here, setting the amount and where it goes; or
+order page of the website or app (a complaint about the food, missing or wrong items…), choosing UPI / card or the
+BiteVo wallet. A customer cancelling a paid order gets a request made for them ("Order cancelled", everything they
+paid). Nothing is refunded until an admin approves a request here, setting the amount and where it goes; or
 rejects it with a note the customer sees. A delivered or cancelled order can also be refunded from its page
 (*Refund*, with a reason), which shows on the Refund requests page as approved. All of these go through
 `src/lib/refunds.js`: one refund per order; the part paid online goes back through Razorpay when sent to the source,
 the rest (wallet, cash) to the BiteVo wallet. The website emails the customer the outcome.
 
+**Payments without an order** (`src/routes/payments.js`, page *No-order payments*): an online payment whose order
+wasn't placed (the order failed after paying, or the customer closed the website or app first). The website marks it
+`held` in `payments` instead of refunding it; an admin refunds it here in full, back to UPI / card through Razorpay or
+to the BiteVo wallet, or marks it refunded when that was done in the Razorpay dashboard. The customer sees it on the
+website's Refunds page.
+
 | Refund requests | `GET /refund-requests`, `POST /refund-requests/:id/approve` `{ amount, to, note }`, `/reject` `{ note }`; `POST /orders/:id/refund` `{ amount, to, reason }`, `GET /orders/:id/refundable` |
+| Payments without an order | `GET /payments/held`, `POST /payments/:id/refund` `{ to: 'source' \| 'wallet', note }`, `POST /payments/:id/mark-refunded` `{ note }` |
 
 **Refunds to UPI / card:** cancelling an order the customer paid online (website or app, through Razorpay) with
 "Refund to UPI/Card" sends the online part back through Razorpay first (`src/lib/razorpay.js`; 5–7 working days for
@@ -153,7 +163,7 @@ is part of a combo.
 src/
   server.js, app.js  start-up, middleware, route table
   auth.js            sessions and the "must be signed in" guard
-  routes/            auth, products (+categories, uploads), coupons, agents, riderApplications, orders, wallets (+customers), activity, reports
+  routes/            auth, products (+categories, uploads), coupons, agents, riderApplications, refundRequests, payments (without an order), orders, wallets (+customers), activity, reports
   db/                MongoDB store, JSON-file fallback, indexes
   demo/              demo data, seeding rules, live order simulator
   analytics.js       dashboard and analytics maths

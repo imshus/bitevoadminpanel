@@ -1,5 +1,6 @@
-// Refund requests from customers on the website (an order's "Request a refund": food quality, missing or wrong
-// items…). Nothing is refunded until an admin approves a request here, choosing the amount and where it goes
+// Refund requests from customers on the website and app (an order's "Request a refund": food quality, missing or
+// wrong items…), and the ones made when a customer cancels a paid order ("Order cancelled": the website doesn't
+// refund cancellations itself). Nothing is refunded until an admin approves a request here, choosing the amount and where it goes
 // (BiteVo wallet, or back to UPI / card for orders paid online). Rejecting needs a note, which the customer sees.
 // Refunds made from an order's page show here too, as approved. The website emails the customer the outcome.
 import { useState } from 'react';
@@ -58,7 +59,7 @@ export default function RefundRequests() {
   return (
     <>
       <PageHeader eyebrow="Customers" title="Refund requests"
-        subtitle="From the website’s “Request a refund” on an order. Approve with the amount and where it goes, or reject with a note for the customer. Nothing is refunded until you approve." />
+        subtitle="From “Request a refund” on an order (website and app), and paid orders the customer cancelled. Approve with the amount and where it goes, or reject with a note for the customer. Nothing is refunded until you approve." />
 
       <div className="toolbar">
         <SearchInput value={query} onChange={setQuery} placeholder="Search order, customer or reason" />
