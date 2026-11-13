@@ -17,6 +17,7 @@ import { router as couponRoutes } from './routes/coupons.js';
 import { router as agentRoutes } from './routes/agents.js';
 import { router as riderApplicationRoutes } from './routes/riderApplications.js';
 import { router as refundRequestRoutes } from './routes/refundRequests.js';
+import { router as paymentRoutes } from './routes/payments.js';
 import { router as orderRoutes } from './routes/orders.js';
 import { router as liveRoutes } from './routes/live.js';
 import { wallets, customers } from './routes/wallets.js';
@@ -68,6 +69,7 @@ export function createApp() {
   app.use('/api/agents', agentRoutes);
   app.use('/api/rider-applications', riderApplicationRoutes); // from the website's "Become a delivery partner"
   app.use('/api/refund-requests', refundRequestRoutes); // from the website's "Request a refund" (approve or reject here)
+  app.use('/api/payments', paymentRoutes); // payments without an order: refunded only from here
   app.use('/api/orders', orderRoutes);
   app.use('/api/live', liveRoutes);
   app.use('/api/wallets', wallets);
